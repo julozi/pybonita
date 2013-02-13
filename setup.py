@@ -5,7 +5,7 @@ setup(
     version='0.1',
     author='Tony Moutaux <moutaux@igbmc.fr>, Julien Seiler <julien.seiler@gmail.com>',
     packages=['pybonita'],
-    description='',
+    description='pybonita is a Python wrapper for the Bonita REST API',
     long_description='',
     license='BSD License',
     install_requires=['requests']
