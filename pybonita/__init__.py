@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['server', 'BonitaObject']
+import requests
+from requests.auth import HTTPBasicAuth
 
-server = BonitaServer()
+__all__ = ['BonitaObject', 'BonitaServer']
 
-class BonitaObject:
+class BonitaObject(object):
     """ All Bonita's entities inherit from BonitaObject """
 
-    def __init__(self, server):
-        pass
+    server = None
+
+    def __init__(self, uuid):
+        self.uuid = uuid
 
 
 class BonitaServer:
@@ -22,22 +25,34 @@ class BonitaServer:
     username = None
     password = None
 
-    def __init__(self):
-        pass
+    @classmethod
+    def connect(cls, host, port, username, password):
+        """
+        Instanciate a BonitaServer object and define it as the server singleton
+        for all BonitaObject
 
-    def connect(host, username, password):
+        """
+
+        #fixme: we should check that the host is responding or raise an
+        #exception
+
+        BonitaObject.server = BonitaServer(host, port, username, password)
+
+    def __init__(self, host, port, username, password):
         self.host = host
+        self.port = port
         self.username = username
         self.password = password
 
     def sendRESTRequest(self, url, data, user):
 
-        data = dict()
-        data['options'] = u"user:%s" % user
-        # add data from method params
+        post_data = dict()
+        post_data['options'] = u"user:%s" % user
+        post_data.update(data)
 
         headers = {'content-type': 'application/x-www-form-urlencoded'}
-        response = requests.post(host+url, data=data, headers=headers, auth=HTTPBasicAuth(self.username, self.password))
+        full_url = 'http://%s:%s/bonita-server-rest/API%s' % (self.host, self.port, url)
+        response = requests.post(full_url, data=post_data, headers=headers, auth=HTTPBasicAuth(self.username, self.password))
 
         if response.status_code != requests.codes.ok:
-            raise Exception
+            print response.text
