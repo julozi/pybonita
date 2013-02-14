@@ -1,6 +1,7 @@
 NAME=pybonita
 VERSION=`python setup.py --version`
 DOCDIR=documentation
+LOCALPYPI=http://pypi.igbmc.u-strasbg.fr/
 
 ###################################################################
 # Standard targets.
@@ -13,6 +14,7 @@ clean:
 
 .PHONY : distclean
 distclean: clean
+	rm -Rf pybonita.egg-info
 	rm -Rf dist
 
 .PHONY : doc
@@ -27,6 +29,6 @@ tests:
 # Package builders.
 ###################################################################
 local-pypi:
-	python setup.py register -r local sdist upload -r local
+	python setup.py register -r $(LOCALPYPI) sdist upload -r $(LOCALPYPI) 
 
 dist: local-pypi
