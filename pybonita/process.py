@@ -27,10 +27,10 @@ class BonitaProcess(BonitaObject):
         dom = parseString(xml)
         process_instances = dom.getElementsByTagName("ProcessInstanceUUID")
         if len(process_instances) != 1:
-            raise Exception #fixme: raise clear Exception
+            raise Exception #FIXME: raise clear Exception
         values = process_instances[0].getElementsByTagName("value")
         if len(values) != 1:
-            raise Exception #fixme: raise clear Exception
+            raise Exception #FIXME: raise clear Exception
 
         uuid = values[0].childNodes[0].data
 
