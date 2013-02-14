@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-
 import logging
 
 import requests
 from requests.auth import HTTPBasicAuth
+from xml.dom.minidom import parseString
 
 __all__ = ['BonitaObject', 'BonitaServer', 'logger']
 
@@ -20,6 +20,54 @@ class BonitaObject(object):
     def __str__(self):
         return "%s %s" % (self.__class__, self.uuid)
 
+    def save(self, user=None, variables=None):
+        """ Save a BonitaObject : sends data to create a resource on the Bonita server.
+        
+        """
+        user = user if user != None else self.server.user
+        
+        # Delegate generation of URL to subclasses
+        (url,data) = self._generate_save_url(variables)
+        data['options'] = u"user:"+user
+        
+        # Call the BonitaServer
+        xml = self.server.sendRESTRequest(url=url, user=user, data=data)
+        
+        # Extact UUID of newly created object
+        dom = parseString(xml)
+        instances = dom.getElementsByTagName("uuid")
+        if len(instances) != 1:
+            raise Exception #fixme: raise clear Exception
+        self.uuid = instances[0].childNodes[0].data
+    
+    def delete(self, user=None):
+        """ Delete a BonitaObject : remove it from the Bonita server
+        
+        """
+        user = user if user != None else self.server.user
+        
+        (url,data) = self._generate_delete_url()
+        data['options'] = u"user:"+user
+        
+        # Call the BonitaServer
+        xml = self.server.sendRESTRequest(url = url, user=user, data=data)
+        
+        #TODO Test return code for completion
+    
+    def _generate_save_url(self,variables):
+        """ Generate URL and data to used to call Bonita server to perform a save operation.
+        You must define this method when you want to provide a save method.
+        
+        """
+        raise NotImplementedError
+    
+    def _generate_delete_url(self,variables):
+        """ Generate URL and data to used to call Bonita server to perform a delete operation.
+        You must define this method when you want to provide a delete method.
+        
+        """
+        raise NotImplementedError
+    
 
 class BonitaServer:
     """
@@ -31,6 +79,8 @@ class BonitaServer:
     host = None
     username = None
     password = None
+    
+    user = u"john"
 
     @classmethod
     def connect(cls, host, port, username, password):
