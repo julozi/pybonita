@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 import requests
 from requests.auth import HTTPBasicAuth
 
-__all__ = ['BonitaObject', 'BonitaServer']
+__all__ = ['BonitaObject', 'BonitaServer', 'logger']
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class BonitaObject(object):
     """ All Bonita's entities inherit from BonitaObject """
@@ -12,6 +17,9 @@ class BonitaObject(object):
 
     def __init__(self, uuid):
         self.uuid = uuid
+
+    def __str__(self):
+        return "%s %s" % (self.__class__, self.uuid)
 
 
 class BonitaServer:
@@ -44,7 +52,7 @@ class BonitaServer:
         self.username = username
         self.password = password
 
-    def sendRESTRequest(self, url, data, user):
+    def sendRESTRequest(self, url, user, data=dict()):
 
         post_data = dict()
         post_data['options'] = u"user:%s" % user
@@ -52,7 +60,10 @@ class BonitaServer:
 
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         full_url = 'http://%s:%s/bonita-server-rest/API%s' % (self.host, self.port, url)
+
         response = requests.post(full_url, data=post_data, headers=headers, auth=HTTPBasicAuth(self.username, self.password))
 
         if response.status_code != requests.codes.ok:
             print response.text
+
+        return response.text
