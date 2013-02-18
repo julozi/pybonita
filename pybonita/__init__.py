@@ -99,8 +99,10 @@ class BonitaServer:
         self.username = username
         self.password = password
 
-    def sendRESTRequest(self, url, user, data=dict()):
-
+    def sendRESTRequest(self, url, user=None, data=dict()):
+        
+        user = user if user != None else self.user
+        
         post_data = dict()
         post_data['options'] = u"user:%s" % user
 
@@ -113,6 +115,7 @@ class BonitaServer:
         response = requests.post(full_url, data=post_data, headers=headers, auth=HTTPBasicAuth(self.username, self.password))
 
         if response.status_code != requests.codes.ok:
+            #FIXME Should raise an Exception also
             print response.text
 
         return response.text

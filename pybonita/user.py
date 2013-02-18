@@ -44,6 +44,41 @@ class BonitaUser(BonitaObject):
         
         return (url,data)
     
+    def _set_membership(self,membership):
+        """ Add a user to a Membership.
+        
+        :param membership: the membership to add the user in
+        :type membership: BonitaMembership
+        :raise Exception: if provided data does not lead to something on the BonitaServer (unknown role for ex.)
+        
+        """
+        url = "/identityAPI/addMembershipToUser/"+self.uuid+"/"+membership.uuid
+        
+        try:
+            response = self.server.sendRESTRequest(url=url)
+        except Exception:
+            print 'Exception'
+    
+    
+    membership = property(None,_set_membership,None)
+    
+#    def _set_membership(self,membership=None,role=None,group=None):
+#        """ Add a user to a Membership.
+#        You should define membership or at least role and group.
+#        
+#        :param membership:
+#        :type membership:
+#        :param role:
+#        :type role:
+#        :param group:
+#        :type group:
+#        :raise Exception: if no data is provided
+#        :raise Exception: if provided data does not lead to something on the BonitaServer (unknown role for ex.)
+#        
+#        """
+#        pass
+
+    
     def setManager(self,user):
         """ Define the Manager of a user 
         
@@ -127,7 +162,7 @@ class BonitaRole(BonitaObject):
         pass
     
     @classmethod
-    def getRoleByUUID(cls):
+    def getRoleByUUID(cls,uuid):
         pass
     
     @classmethod
@@ -139,5 +174,27 @@ class BonitaMembership(BonitaObject):
     """ A class to map a membership in Bonita.
     
     """
-    pass
+    
+    @classmethod
+    def getMembershipByRoleAndGroup(cls,role,group):
+        """ Retrieve a membership given a role and a group 
+        
+        :param role:
+        :type role: BonitaRole
+        :param group:
+        :type group: BonitaGroup
+        :raise Exception: if role or group is unknwo on server
+        
+        TODO Return None or Raise exception if no membership found ?
+        
+        """
+        pass
+    
+    @classmethod
+    def getMembershipByUUID(cls,uuid):
+        pass
+    
+    @classmethod
+    def getMembership(cls,**kwargs):
+        pass
 
