@@ -42,6 +42,13 @@ class BonitaCase(BonitaObject):
     def __init__(self, uuid):
         super(BonitaCase, self).__init__(uuid)
 
+        url = "/queryRuntimeAPI/getProcessInstance/%s" % self.uuid
+
+        xml = self.server.sendRESTRequest(url=url)
+
+        print xml
+
+
     def _generate_delete_url(self):
         """ Generate URL and data to used to call Bonita server to perform a
         delete operation.

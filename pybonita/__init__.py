@@ -24,7 +24,6 @@ class BonitaObject(object):
         """ Save a BonitaObject : sends data to create a resource on the Bonita server.
 
         """
-        user = user if user != None else self.server.user
 
         # Delegate generation of URL to subclasses
         (url,data) = self._generate_save_url(variables)
@@ -43,7 +42,6 @@ class BonitaObject(object):
         """ Delete a BonitaObject : remove it from the Bonita server
 
         """
-        user = user if user != None else self.server.user
 
         (url,data) = self._generate_delete_url()
 
@@ -99,18 +97,19 @@ class BonitaServer:
         self.username = username
         self.password = password
 
-    def sendRESTRequest(self, url, user, data=dict()):
+    def sendRESTRequest(self, url, user=None, data=dict()):
 
-        post_data = dict()
-        post_data['options'] = u"user:%s" % user
+        user = user if user != None else self.user
 
-        if type(data) is dict:
-            post_data.update(data)
+        if type(data) != dict:
+            data = dict()
+
+        data['options'] = u"user:%s" % user
 
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         full_url = 'http://%s:%s/bonita-server-rest/API%s' % (self.host, self.port, url)
 
-        response = requests.post(full_url, data=post_data, headers=headers, auth=HTTPBasicAuth(self.username, self.password))
+        response = requests.post(full_url, data=data, headers=headers, auth=HTTPBasicAuth(self.username, self.password))
 
         if response.status_code != requests.codes.ok:
             print response.text
