@@ -11,6 +11,7 @@ Contents
    :maxdepth: 1
 
    api
+   usage
 
 Indices and tables
 ==================
