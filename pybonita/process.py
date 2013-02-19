@@ -5,10 +5,10 @@ from xml.dom.minidom import parseString
 
 from BeautifulSoup import BeautifulStoneSoup
 
-from pybonita import BonitaObject, BonitaServer, logger
+from pybonita import BonitaObject, BonitaServer
 from pybonita.utils import dictToMapString
 
-__all__ = ['BonitaProcess']
+__all__ = ['BonitaCase', 'BonitaProcess']
 
 class BonitaProcess(BonitaObject):
 

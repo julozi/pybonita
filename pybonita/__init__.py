@@ -205,3 +205,5 @@ class BonitaServer:
 
     def __init__(self):
         raise TypeError('BonitaServer must be accessed through `get_instance()`.')
+
+from .process import BonitaProcess, BonitaCase
