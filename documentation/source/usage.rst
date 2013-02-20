@@ -35,11 +35,23 @@ Adding a user
 Exception thrown
 ================
 
-AttributeError
-ValueError
-BonitaServerError (defini dans __init__.py)
-     avec les messages
-     'not initialized'
-     'unable tot reach Bonita server'
-     'unexpected server response'
+Each exception has its own error message.
+When catching an Exception, you can retrieve additional information in the 
+err_info instance variable.
 
+For example
+
+.. code:: python
+
+    try:
+        # Some code raising a BonitaException or subclass
+    except BonitaException as be:
+        print 'additional info : %s' % (str(be.err_info))
+
+- :class:`BonitaException <pybonita.exception.BonitaException>`
+- :class:`BonitaServerNotInitializedError <pybonita.exception.BonitaServerNotInitializedError>`
+- :class:`ServerNotReachableError <pybonita.exception.ServerNotReachableError>`
+- :class:`UnexpectedResponseError <pybonita.exception.UnexpectedResponseError>`
+
+
+    
