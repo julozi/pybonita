@@ -97,21 +97,21 @@ class BonitaUser(BonitaObject):
         pass
     
     @classmethod
-    def getUserByUsername(cls,username):
+    def get_user_by_username(cls,username):
         pass
     
     @classmethod
-    def getUserByUUID(cls,uuid):
+    def get_user_by_uuid(cls,uuid):
         pass
     
     @classmethod
-    def getUser(cls,**kwargs):
+    def get_user(cls,**kwargs):
         if 'username' in kwargs:
-            return cls.getUserByUsername(username=kwargs['username'])
+            return cls.get_user_by_username(username=kwargs['username'])
         if 'uuid' in kwargs:
-            return cls.getUserByUUID(uuid=kwargs['uuid'])
+            return cls.get_user_by_uuid(uuid=kwargs['uuid'])
         
-        raise AttributeError('called getUser with unknown param')
+        raise TypeError('called getUser with unknown param : %s' % (kwargs.keys()))
     
     # setter par parametre
     # par exemple on fait :
