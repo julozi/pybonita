@@ -100,6 +100,7 @@ class BonitaServer:
         self.password = password
 
     def sendRESTRequest(self, url, user=None, data=dict()):
+        print 'in pybonita module'
         
         user = user if user != None else self.user
         

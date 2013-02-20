@@ -112,7 +112,7 @@ class BonitaUser(BonitaObject):
         if 'uuid' in kwargs:
             return cls.getUserByUUID(uuid=kwargs['uuid'])
         
-        raise Exception #FIXME defin an Exception when params is not ok
+        raise AttributeError('called getUser with unknown param')
     
     # setter par parametre
     # par exemple on fait :

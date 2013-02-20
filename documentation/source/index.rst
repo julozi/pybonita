@@ -12,6 +12,7 @@ Contents
 
    api
    usage
+   develop
 
 Indices and tables
 ==================
