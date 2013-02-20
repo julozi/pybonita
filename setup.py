@@ -12,7 +12,7 @@ setup(
     long_description='',
     license='BSD License',
     platforms='any',
-    install_requires=['requests'],
+    install_requires=['BeautifulSoup', 'requests'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
