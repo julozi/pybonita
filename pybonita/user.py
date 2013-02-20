@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from xml.dom.minidom import parseString
-
-from pybonita import BonitaObject, logger
+from pybonita import logger
+from pybonita.object import BonitaObject
 from pybonita.utils import dictToMapString
 
 __all__ = ['BonitaUser','BonitaGroup','BonitaRole','BonitaMembership']

@@ -13,6 +13,8 @@ setup(
     license='BSD License',
     platforms='any',
     install_requires=['BeautifulSoup', 'requests'],
+    tests_require='nose',
+    test_suite='nose.collector',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

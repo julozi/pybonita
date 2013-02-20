@@ -28,10 +28,10 @@ class BonitaObject(object):
 
         # Extract UUID of newly created object
         soup = BeautifulStoneSoup(xml)
-        instances = soup.set.findAll("uuid")
+        instances = soup.findAll("uuid")
         if len(instances) != 1:
             raise Exception #fixme: raise clear Exception
-        self.uuid = instances[0].childNodes[0].data
+        self.uuid = instances[0].text
 
     def delete(self, user=None):
         """ Delete a BonitaObject : remove it from the Bonita server
