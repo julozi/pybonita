@@ -2,6 +2,9 @@
 import requests
 from requests.auth import HTTPBasicAuth
 
+from .exception import BonitaServerNotInitializedError,ServerNotReachableError,\
+    UnexpectedResponseError, BonitaHTTPError
+
 __all__ = ['BonitaServer']
 
 
@@ -38,7 +41,7 @@ class BonitaServer:
         def sendRESTRequest(self, url, user=None, data=dict()):
 
             if self._ready == False:
-                raise Exception #FIXME: raise BonitaServerError here
+                raise BonitaServerNotInitializedError
 
             user = user if user != None else self._user
 
@@ -52,11 +55,28 @@ class BonitaServer:
             headers = {'content-type': 'application/x-www-form-urlencoded'}
             full_url = 'http://%s:%s/bonita-server-rest/API%s' % (self.host, self.port, url)
 
-            response = requests.post(full_url, data=data, headers=headers, auth=HTTPBasicAuth(self.login, self.password))
+            try:
+                response = requests.post(full_url, data=data, headers=headers, auth=HTTPBasicAuth(self.login, self.password))
+            except ConnectionError, Timeout:
+                raise ServerNotReachableError
+            except HTTPError:
+                raise UnexpectedResponseError
 
             if response.status_code != requests.codes.ok:
-                #FIXME Should raise an Exception
-                print response.text
+                # Bonita Server always return a 500 (yes, i'm not joking. What are RFC made for ?!)
+                # with a body containing XML with 2 interesting fields :
+                # - <errorCode></errorCode> : the real error code, for example 404
+                # - <detailMessage></detailMessage> : message describing the problem
+                if response.status_code == 500:
+                    import re
+                    soup = BeautifulStoneSoup(response.text)
+                    bonita_exception = soup.find(name=re.compile("exception")).name
+                    message = soup.detailMessage
+                    code = soup.errorCode
+                    if code != None and message != None:
+                        raise BonitaHTTPError(bonita_exception,code,message)
+                    else:
+                        raise UnexpectedResponseError
 
             return response.text
 

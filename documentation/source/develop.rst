@@ -6,6 +6,16 @@ Guideline
 =========
 
 - get_something methods return None if nothing found
+- Bonita Server does not properly return HTTP code. It only return 500 error with body containing real HTTP error. To get ride of this stupid feature, you should use the BonitaHTTPError exception calling it with the HTTP error code and a message. For example :
+
+.. code:: python
+
+    # Bonita Server response with 500 error code
+    try:
+        xml = BonitaServer.get_instance().sendRESTRequest()
+    except BonitaHTTPError as err:
+        print 'Bonita server raise an HTTP error code % with message %' % (err.code, err.message)
+
 - method header must include docstring with something like this :
 
 .. code:: python

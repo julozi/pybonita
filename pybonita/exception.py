@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = ['BonitaException','BonitaServerNotInitializedError',
-    'ServerNotReachableError','UnexpectedResponseError']
+    'ServerNotReachableError','UnexpectedResponseError','BonitaHTTPError']
 
 
 class BonitaException(Exception):
@@ -24,4 +24,25 @@ class ServerNotReachableError(BonitaException):
 class UnexpectedResponseError(BonitaException):
     """ Response from Bonita server is unexpected """
     _base_message = 'unexpected server response'
+
+class BonitaHTTPError(BonitaException):
+    """ Bonita HTTP Error.
+
+    Bonita Server always return a 500 error code, with a body containing XML
+    with real HTTP error code and message (RFC are only made for dogs & cats)
+
+    This class embed the HTTP Error code, a message, and the Java exception 
+    class provided by the Bonita server.
+
+    """
+    _base_message = 'HTTP Error from Bonita Server'
+
+    def __init__(self,bonita_exception='',code='',message=''):
+        self.bonita_exception = bonita_exception
+        self.code = code
+        self.message = message
+
+        err_info = ' HTTP[%s] : %s' % (code,message)
+        
+        super(BonitaHTTPError,self).__init__(err_info)
 

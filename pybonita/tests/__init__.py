@@ -2,7 +2,8 @@
 
 from unittest import TestCase
 
-__all__ = ['TestWithBonitaServer','TestWithMockedServer']
+__all__ = ['TestWithBonitaServer','TestWithMockedServer',
+    'build_dumb_bonita_error_body','build_bonita_user_xml']
 
 
 class TestWithBonitaServer(TestCase):
@@ -46,9 +47,24 @@ class BonitaMockedServerImpl(object):
         """ Do not call a BonitaServer, but rather access the reponses list given prior to this method call.
         
         """
-        response_text = self.__class__.extract_response(url,'POST')
+        import re
+        from BeautifulSoup import BeautifulStoneSoup
+        from requests import codes
+        from pybonita.exception import BonitaHTTPError
 
-        return response_text
+        (status, content_type, data) = self.__class__.extract_response(url,'POST')
+
+        if status != str(codes.ok):
+            soup = BeautifulStoneSoup(data)
+            if soup == None:
+                raise Exception('data : %s[%s] and can\'t build soup with that' % (str(data),type(data)))
+            soup_exception = soup.find(name=re.compile("exception"))
+            bonita_exception = soup_exception.name
+            message = soup.detailMessage
+            code = soup.errorCode
+            raise BonitaHTTPError(bonita_exception,code,message)
+
+        return data
 
     def _get_host(self):
         return self._host
@@ -119,19 +135,20 @@ class BonitaMockedServerImpl(object):
             """
 
             """
-            # First extract base path of called URL
+            # Look for url,method in MockedServer responses
             from requests.packages import urllib3
-            parse = urllib3.util.parse_url(full_url).path
-            if parse[0] == '/':
-                parse = parse[1:]
-            split_parse = parse.split('/')
-            if len(split_parse) == 0:
-                raise Exception('not supported url : %s'%(full_url))
-            url_parse = split_parse[0]
 
-            if not (url_parse,method) in self.responses:
+            parse = urllib3.util.parse_url(full_url).path
+            split_parse = parse.split('/')
+
+            n = len(split_parse)
+            while n > 0 and ('/'.join(split_parse[0:n]),'POST') not in self.responses:
+                n -= 1
+
+            if n == 0:
                 raise Exception('No already sets response for url %s and method %s' % (url_parse,method))
 
+            url_parse = '/'.join(split_parse[0:n])
             # Extract the first response in row
             url_method_responses = self.responses.pop((url_parse,method))
             current_response = url_method_responses[0]
@@ -232,3 +249,49 @@ def set_response_list(cls,response_list):
 
         response_list = BonitaMockedServerImpl.get_response_list()
         response_list.add_or_augment_response_list(url,method,status,type,message)
+
+def build_dumb_bonita_error_body(exception='',code='',message=''):
+    from BeautifulSoup import Tag, BeautifulStoneSoup
+
+    # Add your own Bonita java Exception in this dict to make your call shorter
+    # So you can call with exception='UserNotFoundException'
+    # rather than exception = 'org.ow2.bonita.facade.exception.UserNotFoundException'
+    java_exception_dict = {'UserNotFoundException':'org.ow2.bonita.facade.exception.UserNotFoundException'}
+    exception_text = java_exception_dict.get(exception,exception)
+
+    # Build XML body
+    soup=BeautifulStoneSoup()
+    tag_exception = Tag(soup,exception_text)
+    tag_code = Tag(soup,'errorCode')
+    tag_message = Tag(soup,'detailMessage')
+
+    tag_code.setString(code)
+    tag_message.setString(message)
+
+    soup.insert(0,tag_exception)
+    tag_exception.insert(0,tag_code)
+    tag_exception.insert(1,tag_message)
+
+    return soup.prettify()
+
+def build_bonita_user_xml(uuid,password='',username=''):
+    """ Build XML for a Bonita User information """
+    from BeautifulSoup import Tag, BeautifulStoneSoup
+
+    # Build XML body
+    soup=BeautifulStoneSoup()
+    tag_user = Tag(soup,'user')
+    tag_uuid = Tag(soup,'uuid')
+    tag_password = Tag(soup,'password')
+    tag_username = Tag(soup,'username')
+
+    tag_uuid.setString(uuid)
+    tag_password.setString(password)
+    tag_username.setString(username)
+    user_tags = [tag_uuid,tag_password,tag_username]
+
+    soup.insert(0,tag_user)
+    for tag in user_tags:
+        tag_user.append(tag)
+
+    return soup.prettify()
