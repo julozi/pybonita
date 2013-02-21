@@ -2,6 +2,28 @@
 How to develop the PyBonita lib
 ===============================
 
+Guideline
+=========
+
+- get_something methods return None if nothing found
+- method header must include docstring with something like this :
+
+.. code:: python
+
+    def my_kick_ass_method(self,param1,param2,param3=default_value,**kwargs):
+        """ Short description of the method in one line.
+        
+        Longer description. Could include some specific behaviors description.
+        
+        Description of usable extra paramaters if any (those given in kwargs).
+        
+        :param param1: description of param1, also set the default value if any
+        :type param1: type of param1 (either standard as int, str or class as BonitaUser)
+        :raise ExceptionClass: when the exception may be raised
+        
+        """
+        pass # my method code
+
 Test case
 =========
 
