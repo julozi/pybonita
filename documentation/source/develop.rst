@@ -20,6 +20,7 @@ Guideline
         :param param1: description of param1, also set the default value if any
         :type param1: type of param1 (either standard as int, str or class as BonitaUser)
         :raise ExceptionClass: when the exception may be raised
+        :return: Type return by the method, iwht a description if complex type (list, tuple, etc)
         
         """
         pass # my method code
@@ -63,3 +64,14 @@ Without bonita Server
             
             user = BonitaUser('u2','p2')
             user.save()
+
+Testing before developping
+==========================
+
+In order to test the calling requests, and the provided response, you could use the `HTTPie`_ tool and command like this one :::
+
+    http --auth restuser:restbpm POST http://serv-devbpm-integration.igbmc.u-strasbg.fr/bonita-server-rest/API/identityAPI/getAllUsers content-type:application/x-www-form-urlencoded
+
+Adding --verbose --stream --traceback options at start could help you
+
+.. _HTTPie: https://github.com/jkbr/httpie
