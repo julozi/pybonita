@@ -111,6 +111,8 @@ class BonitaServer:
 
             response = requests.post(full_url, data=data, headers=headers, auth=HTTPBasicAuth(self.login, self.password))
 
+            logger.debug("Request data : %s" % response.request.body)
+
             if response.status_code != requests.codes.ok:
                 #FIXME Should raise an Exception
                 print response.text

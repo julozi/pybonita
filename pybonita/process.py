@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import os.path
+import base64
+
 from datetime import datetime
 from xml.dom.minidom import parseString
 
 from BeautifulSoup import BeautifulStoneSoup
 
-from pybonita import BonitaObject, BonitaServer
+from pybonita import BonitaObject, BonitaServer, logger
 from pybonita.utils import dictToMapString
 
 __all__ = ['BonitaCase', 'BonitaProcess']
@@ -130,7 +133,7 @@ class BonitaCase(BonitaObject):
 
     def start(self, user=None):
 
-        if self.uuid != None:
+        if self.state != None:
             raise Exception("case already started on uuid %s" % self.uuid)
 
         data = dict()
@@ -159,7 +162,7 @@ class BonitaCase(BonitaObject):
 
     def save(self):
 
-        if self.uuid == None:
+        if self.state == None:
             raise Exception("The Bonita case is not started")
 
         url = "/runtimeAPI/setProcessInstanceVariable/%s" % self.uuid
@@ -173,6 +176,9 @@ class BonitaCase(BonitaObject):
 
 
     def refresh(self, xml=None):
+        """ Refresh current instance with data from the BonitaServer
+
+        """
 
         if xml == None:
             url = "/queryRuntimeAPI/getProcessInstance/%s" % self.uuid
@@ -195,12 +201,72 @@ class BonitaCase(BonitaObject):
         self._started_date = datetime.fromtimestamp(float(soup.processinstance.starteddate.text) / 1000.0)
         self._last_update = datetime.fromtimestamp(float(soup.processinstance.lastupdate.text) / 1000.0)
 
+    def add_attachment(self, name, descriptor=None, filename=None, filepath=None, description=None, user=None):
+        """ Add an attachment to the current case instance
+
+        :param name: Name of the attachment variable in the process
+        :type name: str
+        :param descriptor: File object to attach to the case (mandatory if no filepath is given)
+        :type name: file
+        :param filename: Name of the file to attach to the case (mandatory if no filepath is given)
+        :type filename: str
+        :param filepath: Path to the file to attach to the case (mandatory if no descriptor or filename is given)
+        :type filepath: str
+        :param user: Login of the actor to use to attach the file within the case (mandatory)
+        :type user: str
+
+        """
+
+        if self.state == None:
+            raise Exception("The Bonita case is not started")
+
+        #FIXME: check params types
+
+        if descriptor == None and filepath == None:
+            raise ValueError("add_attachment requires at least a descriptor or a filepath")
+
+        if filename == None and filepath == None:
+            raise ValueError("add_attachment requires at least a filename or a filepath")
+
+        if filepath != None:
+            filepath = os.path.expandvars(filepath)
+            filepath = os.path.expanduser(filepath)
+            if not os.path.exists(filepath) or not os.path.isfile(filepath):
+                raise ValueError("invalid filepath : %s" % filepath)
+
+            descriptor = open(filepath, "rb")
+
+        if filename == None:
+            filename = os.path.basename(filepath)
+
+        import array
+        bts = array.array('b', descriptor.read())
+
+        data = dict()
+        data['value'] = bts
+        data['fileName'] = filename
+
+        url = "/runtimeAPI/addAttachment/%s/%s" % (self.uuid, name)
+        BonitaServer.get_instance().sendRESTRequest(url=url, data=data, user=user)
+
+    # def get_attachment(self, name):
+    #
+    #     url = "/queryRuntimeAPI/getAttachments/%s/%s" % (self.uuid, name)
+    #     print BonitaServer.get_instance().sendRESTRequest(url=url)
+    #
+    # def get_attachment_value(self, instance):
+    #
+    #     url = "/queryRuntimeAPI/getAttachmentValue"
+    #     data = {"attachmentInstance": "<AttachmentInstance><dbid>0</dbid><attachmentUUID><value>24</value></attachmentUUID><name>pj</name><fileName>test.txt</fileName><metaData><entry><string>content-type</string><string>application/octet-stream</string></entry></metaData><processInstanceUUID><value>Demande_de_genotypage--2.0--2</value></processInstanceUUID><author>admin</author><versionDate>1361368042546</versionDate></AttachmentInstance>"}
+    #
+    #     print BonitaServer.get_instance().sendRESTRequest(url=url, data=data)
+
     def _get_process(self):
         return self._process
 
     def _set_process(self, value):
 
-        if self.uuid != None:
+        if self.state != None:
             raise Exception("case already started on uuid %s" % self.uuid)
 
         if value != None and type(value) != BonitaProcess:
