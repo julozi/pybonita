@@ -12,7 +12,7 @@ Creating a Process instance (opening a new case)
 
 .. code:: python
     
-    BonitaServer.connect('localhost', 9090, 'restuser', 'restbpm')
+    BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
 
     process = BonitaProcess('Demande_de_genotypage--1.0')
 
@@ -26,13 +26,32 @@ Adding a user
 
 .. code:: python
     
-    BonitaServer.connect('localhost', 9090, 'restuser', 'restbpm')
+    BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
 
-    user = BonitaUser(login="john",password="onepass")
+    user = BonitaUser(username="john",password="onepass")
     user.save()
 
 
 Exception thrown
 ================
 
-Here, description of what kind of Exception could be thrown and the meaning of each one.
+Each exception has its own error message.
+When catching an Exception, you can retrieve additional information in the 
+err_info instance variable.
+
+For example
+
+.. code:: python
+
+    try:
+        # Some code raising a BonitaException or subclass
+    except BonitaException as be:
+        print 'additional info : %s' % (str(be.err_info))
+
+- :class:`BonitaException <pybonita.exception.BonitaException>`
+- :class:`BonitaServerNotInitializedError <pybonita.exception.BonitaServerNotInitializedError>`
+- :class:`ServerNotReachableError <pybonita.exception.ServerNotReachableError>`
+- :class:`UnexpectedResponseError <pybonita.exception.UnexpectedResponseError>`
+
+
+    

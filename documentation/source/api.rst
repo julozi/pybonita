@@ -1,5 +1,7 @@
 API documentation
 =================
 
-.. automodule:: pybonita.user
+.. automodule:: pybonita.exception
 .. automodule:: pybonita.process
+.. automodule:: pybonita.user
+.. automodule:: pybonita.server

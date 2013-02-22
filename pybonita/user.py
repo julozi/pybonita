@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from xml.dom.minidom import parseString
+from BeautifulSoup import BeautifulStoneSoup
 
-from pybonita import BonitaObject, logger
-from pybonita.utils import dictToMapString
+from . import logger, BonitaServer
+from .exception import BonitaHTTPError
+from .object import BonitaObject
+from .utils import dictToMapString
 
 __all__ = ['BonitaUser','BonitaGroup','BonitaRole','BonitaMembership']
 
@@ -16,12 +18,10 @@ class BonitaUser(BonitaObject):
     def __init__(self,username,password,membership=None,role=None,group=None,**kwargs):
         """ Add a new user in Bonita.
         
-        At least username and password must be provided.
-        
         :param username: username to use
         :type username: str
         :param password: password to set
-        :type paswword: str
+        :type password: str
         
         """
         # membership ou (role,group) mais ils sont exclusifs
@@ -44,6 +44,62 @@ class BonitaUser(BonitaObject):
         
         return (url,data)
     
+    @classmethod
+    def _instanciate_from_xml(cls, xml):
+        """ Instanciate a BonitaUser from XML
+        
+        :param xml: the XML description of a user
+        :type xml: unicode
+        :return: BonitaUser
+        
+        """
+        soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
+
+        # First thing first : instanciate a new BonitaUser with username and password
+        username = soup.user.username
+        password = soup.user.password
+        user = BonitaUser(username,password)
+
+        # Main properties now
+        user.uuid = soup.user.uuid.text
+        # Must first check there is a firstname and a lastName in the soup
+        #user.firstName = soup.user.firstName.text
+        #user.lastName = soup.user.lastName.text
+
+        # Other properties then
+
+        return user
+
+#<User>
+#  <dbid>0</dbid>
+#  <uuid>3f4fee49-391c-4847-ac23-b99526773b02</uuid>
+#  <firstName>John</firstName>
+#  <lastName>Doe</lastName>
+#  <password>46e490cac450e85a9cba3059365826296771cc3</password>
+#  <username>john</username>
+#  <metadata/>
+#  <memberships>
+#    <Membership>
+#      <dbid>0</dbid>
+#      <uuid>ef1fc933-a95b-443e-8c30-772eb394c123</uuid>
+#      <role class="Role">
+#        <description>The user role</description>
+#        <dbid>0</dbid>
+#        <uuid>6a20e8a9-d703-44af-9cf6-cb2eea4ac515</uuid>
+#        <name>user</name>
+#        <label>User</label>
+#      </role>
+#      <group class="Group">
+#        <description>The default group</description>
+#        <dbid>0</dbid>
+#        <uuid>603b07ad-7891-4843-8fda-6749a35cbd4d</uuid>
+#        <name>platform</name>
+#        <label>Platform</label>
+#      </group>
+#    </Membership>
+#  </memberships>
+#</User>
+
     def _set_membership(self,membership):
         """ Add a user to a Membership.
         
@@ -85,6 +141,7 @@ class BonitaUser(BonitaObject):
         :param user: the manager to set with
         :type user: BonitaUser
         :raise ValueError: manager user is unknown in BonitaServer
+
         """
         pass
     
@@ -98,21 +155,37 @@ class BonitaUser(BonitaObject):
         pass
     
     @classmethod
-    def getUserByUsername(cls,username):
+    def get_user_by_username(cls,username):
         pass
     
     @classmethod
-    def getUserByUUID(cls,uuid):
-        pass
-    
-    @classmethod
-    def getUser(cls,**kwargs):
-        if 'username' in kwargs:
-            return cls.getUserByUsername(username=kwargs['username'])
-        if 'uuid' in kwargs:
-            return cls.getUserByUUID(uuid=kwargs['uuid'])
+    def get_user_by_uuid(cls,uuid):
+        """ Retrieve a User with the UUID 
         
-        raise Exception #FIXME defin an Exception when params is not ok
+        :param uuid: the UUID of the user to retrieve
+        :type uuid: str
+        
+        """
+        url = '/identityAPI/getUserByUUID/'+uuid
+
+        try:
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        except BonitaHTTPError as err:
+            if 'UserNotFoundException'.lower() in err.bonita_exception.lower():
+                return None
+        
+        user = cls._instanciate_from_xml(xml)
+
+        return user
+
+    @classmethod
+    def get_user(cls,**kwargs):
+        if 'username' in kwargs:
+            return cls.get_user_by_username(username=kwargs['username'])
+        if 'uuid' in kwargs:
+            return cls.get_user_by_uuid(uuid=kwargs['uuid'])
+        
+        raise TypeError('called getUser with unknown param : %s' % (kwargs.keys()))
     
     # setter par parametre
     # par exemple on fait :
