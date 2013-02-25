@@ -46,9 +46,9 @@
 		</style>
 
 
-		<link rel="stylesheet" href="_static/css/bootstrap.css" type="text/css"/>
-		<link rel="stylesheet" href="_static/css/bootstrap-responsive.css" type="text/css"/>
-		<link rel="stylesheet" href="_static/pygments.css" type="text/css"/>
+		<link rel="stylesheet" href="static/css/bootstrap.css" type="text/css"/>
+		<link rel="stylesheet" href="static/css/bootstrap-responsive.css" type="text/css"/>
+		<link rel="stylesheet" href="static/pygments.css" type="text/css"/>
 
 		<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
 		<!--[if lt IE 9]>
@@ -117,31 +117,31 @@ URL_ROOT:'',
 <span id="api-documentation"></span><h1>API documentation</h1>
 <dl class="exception">
 <dt id="pybonita.exception.BonitaException">
-<em class="property">exception </em><tt class="descclassname">pybonita.exception.</tt><tt class="descname">BonitaException</tt><big>(</big><em>err_info=None</em><big>)</big><a class="reference internal" href="_modules/pybonita/exception.html#BonitaException"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">exception </em><tt class="descclassname">pybonita.exception.</tt><tt class="descname">BonitaException</tt><big>(</big><em>err_info=None</em><big>)</big><a class="reference internal" href="modules/pybonita/exception.html#BonitaException"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Base class for exception raised in this package</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="pybonita.exception.BonitaServerNotInitializedError">
-<em class="property">exception </em><tt class="descclassname">pybonita.exception.</tt><tt class="descname">BonitaServerNotInitializedError</tt><big>(</big><em>err_info=None</em><big>)</big><a class="reference internal" href="_modules/pybonita/exception.html#BonitaServerNotInitializedError"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">exception </em><tt class="descclassname">pybonita.exception.</tt><tt class="descname">BonitaServerNotInitializedError</tt><big>(</big><em>err_info=None</em><big>)</big><a class="reference internal" href="modules/pybonita/exception.html#BonitaServerNotInitializedError"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>BonitaServer has not been initialized prior to any action</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="pybonita.exception.ServerNotReachableError">
-<em class="property">exception </em><tt class="descclassname">pybonita.exception.</tt><tt class="descname">ServerNotReachableError</tt><big>(</big><em>err_info=None</em><big>)</big><a class="reference internal" href="_modules/pybonita/exception.html#ServerNotReachableError"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">exception </em><tt class="descclassname">pybonita.exception.</tt><tt class="descname">ServerNotReachableError</tt><big>(</big><em>err_info=None</em><big>)</big><a class="reference internal" href="modules/pybonita/exception.html#ServerNotReachableError"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Bonita server is not reachable</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="pybonita.exception.UnexpectedResponseError">
-<em class="property">exception </em><tt class="descclassname">pybonita.exception.</tt><tt class="descname">UnexpectedResponseError</tt><big>(</big><em>err_info=None</em><big>)</big><a class="reference internal" href="_modules/pybonita/exception.html#UnexpectedResponseError"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">exception </em><tt class="descclassname">pybonita.exception.</tt><tt class="descname">UnexpectedResponseError</tt><big>(</big><em>err_info=None</em><big>)</big><a class="reference internal" href="modules/pybonita/exception.html#UnexpectedResponseError"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Response from Bonita server is unexpected</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="pybonita.exception.BonitaHTTPError">
-<em class="property">exception </em><tt class="descclassname">pybonita.exception.</tt><tt class="descname">BonitaHTTPError</tt><big>(</big><em>bonita_exception=''</em>, <em>code=''</em>, <em>message=''</em><big>)</big><a class="reference internal" href="_modules/pybonita/exception.html#BonitaHTTPError"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">exception </em><tt class="descclassname">pybonita.exception.</tt><tt class="descname">BonitaHTTPError</tt><big>(</big><em>bonita_exception=''</em>, <em>code=''</em>, <em>message=''</em><big>)</big><a class="reference internal" href="modules/pybonita/exception.html#BonitaHTTPError"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Bonita HTTP Error.</p>
 <p>Bonita Server always return a 500 error code, with a body containing XML
 with real HTTP error code and message (RFC are only made for dogs &amp; cats)</p>
@@ -151,11 +151,11 @@ class provided by the Bonita server.</p>
 
 <span class="target" id="module-pybonita.process"></span><span class="target" id="module-pybonita.user"></span><dl class="class">
 <dt id="pybonita.user.BonitaUser">
-<em class="property">class </em><tt class="descclassname">pybonita.user.</tt><tt class="descname">BonitaUser</tt><big>(</big><em>username</em>, <em>password</em>, <em>membership=None</em>, <em>role=None</em>, <em>group=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaUser"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">class </em><tt class="descclassname">pybonita.user.</tt><tt class="descname">BonitaUser</tt><big>(</big><em>username</em>, <em>password</em>, <em>membership=None</em>, <em>role=None</em>, <em>group=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaUser"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>A class to map a user in Bonita.</p>
 <dl class="classmethod">
 <dt id="pybonita.user.BonitaUser.get_user">
-<em class="property">classmethod </em><tt class="descname">get_user</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaUser.get_user"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">get_user</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaUser.get_user"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Retrieve a User with given parameter</p>
 <p>Parameter can be any of :
 - username
@@ -175,7 +175,7 @@ class provided by the Bonita server.</p>
 
 <dl class="classmethod">
 <dt id="pybonita.user.BonitaUser.get_user_by_username">
-<em class="property">classmethod </em><tt class="descname">get_user_by_username</tt><big>(</big><em>username</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaUser.get_user_by_username"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">get_user_by_username</tt><big>(</big><em>username</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaUser.get_user_by_username"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Retrieve a User with the username</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -189,7 +189,7 @@ class provided by the Bonita server.</p>
 
 <dl class="classmethod">
 <dt id="pybonita.user.BonitaUser.get_user_by_uuid">
-<em class="property">classmethod </em><tt class="descname">get_user_by_uuid</tt><big>(</big><em>uuid</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaUser.get_user_by_uuid"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">get_user_by_uuid</tt><big>(</big><em>uuid</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaUser.get_user_by_uuid"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Retrieve a User with the UUID</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -203,7 +203,7 @@ class provided by the Bonita server.</p>
 
 <dl class="method">
 <dt id="pybonita.user.BonitaUser.set_delegee">
-<tt class="descname">set_delegee</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaUser.set_delegee"><span class="viewcode-link">[source]</span></a></dt>
+<tt class="descname">set_delegee</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaUser.set_delegee"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Define the Delegee of a user</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -220,7 +220,7 @@ class provided by the Bonita server.</p>
 
 <dl class="method">
 <dt id="pybonita.user.BonitaUser.set_manager">
-<tt class="descname">set_manager</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaUser.set_manager"><span class="viewcode-link">[source]</span></a></dt>
+<tt class="descname">set_manager</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaUser.set_manager"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Define the Manager of a user</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -239,11 +239,11 @@ class provided by the Bonita server.</p>
 
 <dl class="class">
 <dt id="pybonita.user.BonitaGroup">
-<em class="property">class </em><tt class="descclassname">pybonita.user.</tt><tt class="descname">BonitaGroup</tt><big>(</big><em>name</em>, <em>label</em>, <em>description</em>, <em>parent=None</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaGroup"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">class </em><tt class="descclassname">pybonita.user.</tt><tt class="descname">BonitaGroup</tt><big>(</big><em>name</em>, <em>label</em>, <em>description</em>, <em>parent=None</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaGroup"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>A class to map a group in Bonita.</p>
 <dl class="classmethod">
 <dt id="pybonita.user.BonitaGroup.get_default_root_group">
-<em class="property">classmethod </em><tt class="descname">get_default_root_group</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaGroup.get_default_root_group"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">get_default_root_group</tt><big>(</big><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaGroup.get_default_root_group"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Retrieve BonitaGroup which is the root, currently the /platform group.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -257,7 +257,7 @@ class provided by the Bonita server.</p>
 
 <dl class="classmethod">
 <dt id="pybonita.user.BonitaGroup.get_group">
-<em class="property">classmethod </em><tt class="descname">get_group</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaGroup.get_group"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">get_group</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaGroup.get_group"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Retrieve a Group with given parameter</p>
 <p>Parameter can be any of :
 - path
@@ -277,7 +277,7 @@ class provided by the Bonita server.</p>
 
 <dl class="classmethod">
 <dt id="pybonita.user.BonitaGroup.get_group_by_path">
-<em class="property">classmethod </em><tt class="descname">get_group_by_path</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaGroup.get_group_by_path"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">get_group_by_path</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaGroup.get_group_by_path"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Retrieve a Group with the path</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -291,7 +291,7 @@ class provided by the Bonita server.</p>
 
 <dl class="classmethod">
 <dt id="pybonita.user.BonitaGroup.get_group_by_uuid">
-<em class="property">classmethod </em><tt class="descname">get_group_by_uuid</tt><big>(</big><em>uuid</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaGroup.get_group_by_uuid"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">get_group_by_uuid</tt><big>(</big><em>uuid</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaGroup.get_group_by_uuid"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Retrieve a Group with the UUID</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -307,11 +307,11 @@ class provided by the Bonita server.</p>
 
 <dl class="class">
 <dt id="pybonita.user.BonitaRole">
-<em class="property">class </em><tt class="descclassname">pybonita.user.</tt><tt class="descname">BonitaRole</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaRole"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">class </em><tt class="descclassname">pybonita.user.</tt><tt class="descname">BonitaRole</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaRole"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>A class to map a role in Bonita.</p>
 <dl class="classmethod">
 <dt id="pybonita.user.BonitaRole.getRoleByName">
-<em class="property">classmethod </em><tt class="descname">getRoleByName</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaRole.getRoleByName"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">getRoleByName</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaRole.getRoleByName"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Retrieve a role given a name</p>
 </dd></dl>
 
@@ -319,11 +319,11 @@ class provided by the Bonita server.</p>
 
 <dl class="class">
 <dt id="pybonita.user.BonitaMembership">
-<em class="property">class </em><tt class="descclassname">pybonita.user.</tt><tt class="descname">BonitaMembership</tt><big>(</big><em>uuid</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaMembership"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">class </em><tt class="descclassname">pybonita.user.</tt><tt class="descname">BonitaMembership</tt><big>(</big><em>uuid</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaMembership"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>A class to map a membership in Bonita.</p>
 <dl class="classmethod">
 <dt id="pybonita.user.BonitaMembership.getMembershipByRoleAndGroup">
-<em class="property">classmethod </em><tt class="descname">getMembershipByRoleAndGroup</tt><big>(</big><em>role</em>, <em>group</em><big>)</big><a class="reference internal" href="_modules/pybonita/user.html#BonitaMembership.getMembershipByRoleAndGroup"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">getMembershipByRoleAndGroup</tt><big>(</big><em>role</em>, <em>group</em><big>)</big><a class="reference internal" href="modules/pybonita/user.html#BonitaMembership.getMembershipByRoleAndGroup"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Retrieve a membership given a role and a group</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -348,7 +348,7 @@ class provided by the Bonita server.</p>
 
 <span class="target" id="module-pybonita.server"></span><dl class="class">
 <dt id="pybonita.server.BonitaServer">
-<em class="property">class </em><tt class="descclassname">pybonita.server.</tt><tt class="descname">BonitaServer</tt><a class="reference internal" href="_modules/pybonita/server.html#BonitaServer"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">class </em><tt class="descclassname">pybonita.server.</tt><tt class="descname">BonitaServer</tt><a class="reference internal" href="modules/pybonita/server.html#BonitaServer"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Singleton object to declare Bonita server to be used</p>
 <p>BonitaServer is a singleton object used by all BonitaObject within the
 pybonita package.</p>
@@ -357,7 +357,7 @@ To get the unique BonitaServer instance please use the static get_instance
 method.</p>
 <dl class="classmethod">
 <dt id="pybonita.server.BonitaServer.get_instance">
-<em class="property">classmethod </em><tt class="descname">get_instance</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pybonita/server.html#BonitaServer.get_instance"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">get_instance</tt><big>(</big><big>)</big><a class="reference internal" href="modules/pybonita/server.html#BonitaServer.get_instance"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Returns the singleton instance of BonitaServer</p>
 <p>Upon its first call, it creates a new instance of the BonitaServer
 implementation class
@@ -366,7 +366,7 @@ On all subsequent calls, the already created instance is returned.</p>
 
 <dl class="classmethod">
 <dt id="pybonita.server.BonitaServer.use">
-<em class="property">classmethod </em><tt class="descname">use</tt><big>(</big><em>host</em>, <em>port</em>, <em>login</em>, <em>password</em><big>)</big><a class="reference internal" href="_modules/pybonita/server.html#BonitaServer.use"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">use</tt><big>(</big><em>host</em>, <em>port</em>, <em>login</em>, <em>password</em><big>)</big><a class="reference internal" href="modules/pybonita/server.html#BonitaServer.use"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Set the connexion params to the BonitaServer</p>
 <p>Returns the unique BonitaServer instance</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -433,10 +433,10 @@ On all subsequent calls, the already created instance is returned.</p>
 			   s.parentNode.insertBefore(po, s);
 			   })();
 		   </script>
-		   <script type="text/javascript" src="_static/js/jquery.js"></script>
-		   <script type="text/javascript" src="_static/underscore.js"></script>
-		   <script type="text/javascript" src="_static/doctools.js"></script>
-<script type="text/javascript" src="_static/js/bootstrap-collapse.js"></script>
+		   <script type="text/javascript" src="static/js/jquery.js"></script>
+		   <script type="text/javascript" src="static/underscore.js"></script>
+		   <script type="text/javascript" src="static/doctools.js"></script>
+<script type="text/javascript" src="static/js/bootstrap-collapse.js"></script>
 <script>
 $(document).ready(function() {
    $('table.docutils').attr("cellspacing", 0);
