@@ -1,2 +1,3 @@
 Sphinx
 sphinxcontrib-httpdomain
+-e git://github.com/michaeljones/sphinx-to-github.git@eee7de943d72bbf7ad349b7ec6f36612de3333fa#egg=sphinxtogithub-dev
