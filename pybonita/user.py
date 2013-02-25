@@ -56,8 +56,8 @@ class BonitaUser(BonitaObject):
         soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
 
         # First thing first : instanciate a new BonitaUser with username and password
-        username = soup.user.username
-        password = soup.user.password
+        username = soup.user.username.text
+        password = soup.user.password.text
         user = BonitaUser(username,password)
 
         # Main properties now
@@ -156,15 +156,31 @@ class BonitaUser(BonitaObject):
     
     @classmethod
     def get_user_by_username(cls,username):
-        pass
-    
+        """ Retrieve a User with the username
+
+        :param username: the username of the user to retrieve
+        :type username: str
+
+        """
+        url = '/identityAPI/getUser/'+username
+
+        try:
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        except BonitaHTTPError as err:
+            if 'UserNotFoundException'.lower() in err.bonita_exception.lower():
+                return None
+
+        user = cls._instanciate_from_xml(xml)
+
+        return user
+
     @classmethod
     def get_user_by_uuid(cls,uuid):
         """ Retrieve a User with the UUID 
-        
+
         :param uuid: the UUID of the user to retrieve
         :type uuid: str
-        
+
         """
         url = '/identityAPI/getUserByUUID/'+uuid
 
@@ -173,7 +189,7 @@ class BonitaUser(BonitaObject):
         except BonitaHTTPError as err:
             if 'UserNotFoundException'.lower() in err.bonita_exception.lower():
                 return None
-        
+
         user = cls._instanciate_from_xml(xml)
 
         return user
