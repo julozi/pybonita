@@ -1,0 +1,346 @@
+
+<!DOCTYPE html><html lang="en">
+	<head>
+		<meta charset="utf-8">
+
+		
+		<title>pybonita.server &mdash; PyBonita 1.0 documentation</title>
+		<link href='http://fonts.googleapis.com/css?family=Abel' rel='stylesheet' type='text/css'>
+		<style type="text/css">
+			body {
+				padding-top: 60px;
+				padding-bottom: 40px;
+			}
+			.sidebar-nav {
+				padding: 9px 0;
+			}
+			a.headerlink {
+				color: white;
+			}
+			a.headerlink:hover {
+				color: #216d15;
+			}
+	  		@media (max-width: 480px), 
+			(max-width: 768px), 
+			(min-width: 768px) and (max-width: 980px),
+			(max-width: 980px) {
+				.fixedsidebar {
+					position: relative;
+				}
+				.content {
+					padding-left: 0;
+				}
+			}
+		  	@media (min-width: 980px),
+			(min-width: 1200px) {
+				.fixedsidebar {
+					position: fixed;
+					width: 260px;
+				}
+				.content {
+					padding-left: 280px;
+				}
+
+			}
+
+		</style>
+
+
+		<link rel="stylesheet" href="../../_static/css/bootstrap.css" type="text/css"/>
+		<link rel="stylesheet" href="_static/css/bootstrap-responsive.css" type="text/css"/>
+		<link rel="stylesheet" href="_static/pygments.css" type="text/css"/>
+
+		<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		<script type="text/javascript">
+			var DOCUMENTATION_OPTIONS = {
+URL_ROOT:'../../',
+	 VERSION:'1.0',
+	 COLLAPSE_INDEX:false,
+	 FILE_SUFFIX:'.html',
+	 HAS_SOURCE:  true
+			};
+</script>
+<link rel="top" title="PyBonita 1.0 documentation" href="../../index.html"/>
+<link rel="up" title="Module code" href="../index.html"/> 
+<script type="text/javascript"
+	src="https://apis.google.com/js/plusone.js"></script>
+	</head>
+	<body>
+		<div class="navbar navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container-fluid">
+					<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</a>
+<a class="brand" href="../../index.html">PyBonita</a>
+<div class="nav-collapse">
+<ul class="nav">
+	<li>
+	<a href="../../genindex.html" title="General Index" accesskey="I">index</a>
+	</li>
+	<li>
+	<a href="../../py-modindex.html" title="Python Module Index" >modules</a>
+	</li>
+	<li><a href="../index.html"
+		accesskey="U">Module code</a>
+	</li> 
+</ul>
+</div>
+				</div>
+			</div>
+		</div>
+		  
+		<div class="container-fluid">
+			<div class="row-fluid">
+				<div class="span3">
+					
+<div class="well sidebar-nav fixedsidebar">
+		
+</div>
+				</div>
+				
+				<div class="span9 content">
+					
+  <h1>Source code for pybonita.server</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">BeautifulSoup</span> <span class="kn">import</span> <span class="n">BeautifulStoneSoup</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">HTTPBasicAuth</span>
+
+<span class="kn">from</span> <span class="nn">pybonita</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">.exception</span> <span class="kn">import</span> <span class="n">BonitaServerNotInitializedError</span><span class="p">,</span><span class="n">ServerNotReachableError</span><span class="p">,</span>\
+    <span class="n">UnexpectedResponseError</span><span class="p">,</span> <span class="n">BonitaHTTPError</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;BonitaServer&#39;</span><span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">_MetaBonitaServer</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__instancecheck__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inst</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">BonitaServer</span><span class="o">.</span><span class="n">_BonitaServerImpl</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BonitaServer"><a class="viewcode-back" href="../../api.html#pybonita.server.BonitaServer">[docs]</a><span class="k">class</span> <span class="nc">BonitaServer</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Singleton object to declare Bonita server to be used</span>
+
+
+<span class="sd">    BonitaServer is a singleton object used by all BonitaObject within the</span>
+<span class="sd">    pybonita package.</span>
+
+<span class="sd">    You can&#39;t instanciate BonitaServer.</span>
+<span class="sd">    To get the unique BonitaServer instance please use the static get_instance</span>
+<span class="sd">    method.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">_MetaBonitaServer</span>
+
+    <span class="k">class</span> <span class="nc">_BonitaServerImpl</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_user</span> <span class="o">=</span> <span class="s">&quot;john&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_host</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_port</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_login</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_password</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ready</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">def</span> <span class="nf">sendRESTRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="nb">dict</span><span class="p">()):</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ready</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">BonitaServerNotInitializedError</span>
+
+            <span class="n">user</span> <span class="o">=</span> <span class="n">user</span> <span class="k">if</span> <span class="n">user</span> <span class="o">!=</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user</span>
+
+            <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">dict</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span>
+
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;options&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">u&quot;user:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span>
+
+            <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;content-type&#39;</span><span class="p">:</span> <span class="s">&#39;application/x-www-form-urlencoded&#39;</span><span class="p">}</span>
+            <span class="n">full_url</span> <span class="o">=</span> <span class="s">&#39;http://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">/bonita-server-rest/API</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">full_url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">HTTPBasicAuth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">))</span>
+            <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">,</span> <span class="n">Timeout</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ServerNotReachableError</span>
+            <span class="k">except</span> <span class="n">HTTPError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">UnexpectedResponseError</span>
+
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                <span class="c"># Bonita Server always return a 500 (yes, i&#39;m not joking. What are RFC made for ?!)</span>
+                <span class="c"># with a body containing XML with 2 interesting fields :</span>
+                <span class="c"># - &lt;errorCode&gt;&lt;/errorCode&gt; : the real error code, for example 404</span>
+                <span class="c"># - &lt;detailMessage&gt;&lt;/detailMessage&gt; : message describing the problem</span>
+                <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">500</span><span class="p">:</span>
+                    <span class="kn">import</span> <span class="nn">re</span>
+                    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulStoneSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                    <span class="n">bonita_exception</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;exception&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">name</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">detailmessage</span><span class="o">.</span><span class="n">text</span>
+                    <span class="n">code</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">soup</span><span class="o">.</span><span class="n">errorCode</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="n">soup</span><span class="o">.</span><span class="n">errorCode</span> <span class="o">!=</span> <span class="bp">None</span> <span class="k">else</span> <span class="mi">500</span>
+                    <span class="k">if</span> <span class="n">code</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">message</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">BonitaHTTPError</span><span class="p">(</span><span class="n">bonita_exception</span><span class="o">=</span><span class="n">bonita_exception</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span><span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">UnexpectedResponseError</span>
+
+            <span class="k">print</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="k">def</span> <span class="nf">_get_host</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_host</span>
+
+        <span class="k">def</span> <span class="nf">_set_host</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">u&quot;host must be a string&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_host</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="n">host</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_host</span><span class="p">,</span> <span class="n">_set_host</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s">u&quot;Bonita REST API server host&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_get_port</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_port</span>
+
+        <span class="k">def</span> <span class="nf">_set_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">u&quot;port must be an integer&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_port</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="n">port</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_port</span><span class="p">,</span> <span class="n">_set_port</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s">u&quot;Bonita REST API server port&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_get_login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_login</span>
+
+        <span class="k">def</span> <span class="nf">_set_login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">u&quot;login must be a string&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_login</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="n">login</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_login</span><span class="p">,</span> <span class="n">_set_login</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s">u&quot;Bonita REST request credential login&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_get_password</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_password</span>
+
+        <span class="k">def</span> <span class="nf">_set_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_password</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="n">password</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_password</span><span class="p">,</span> <span class="n">_set_password</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s">u&quot;Bonita REST request credential password&quot;</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BonitaServer.get_instance"><a class="viewcode-back" href="../../api.html#pybonita.server.BonitaServer.get_instance">[docs]</a>    <span class="k">def</span> <span class="nf">get_instance</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the singleton instance of BonitaServer</span>
+
+<span class="sd">        Upon its first call, it creates a new instance of the BonitaServer</span>
+<span class="sd">        implementation class</span>
+<span class="sd">        On all subsequent calls, the already created instance is returned.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">_instance</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_BonitaServerImpl</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">_instance</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BonitaServer.use"><a class="viewcode-back" href="../../api.html#pybonita.server.BonitaServer.use">[docs]</a>    <span class="k">def</span> <span class="nf">use</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">login</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set the connexion params to the BonitaServer</span>
+
+<span class="sd">        Returns the unique BonitaServer instance</span>
+
+<span class="sd">        :param host: Bonita REST API server host</span>
+<span class="sd">        :type host: str</span>
+<span class="sd">        :param port: Bonita REST API server port</span>
+<span class="sd">        :type port: int</span>
+<span class="sd">        :param login: Bonita REST request credential login</span>
+<span class="sd">        :type login: str</span>
+<span class="sd">        :param password: Bonita REST request credential password</span>
+<span class="sd">        :type password: str</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">server</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span>
+        <span class="n">server</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
+        <span class="n">server</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
+        <span class="n">server</span><span class="o">.</span><span class="n">login</span> <span class="o">=</span> <span class="n">login</span>
+        <span class="n">server</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">password</span>
+        <span class="n">server</span><span class="o">.</span><span class="n">_ready</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">return</span> <span class="n">server</span>
+</div>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;BonitaServer must be accessed through `get_instance()`.&#39;</span><span class="p">)</span>
+</pre></div></div>
+
+				</div>
+			</div>
+		</div>
+		<div class="footer">
+			
+			<div class="container">
+				&copy;
+				Copyright 2013, IGBMC - Service Info - Pôle Développement.
+				Created using <a
+					href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3
+				.
+				Theme adapted from
+				<a href="http://twitter.github.com/bootstrap/">Twitter's
+					Bootstrap</a>
+			</div>
+		</div>
+
+		
+
+		 <!-- analytics -->
+		 <script type="text/javascript">
+		 var _gaq = _gaq || [];
+		 _gaq.push(['_setAccount', 'UA-21443721-1']);
+		 _gaq.push(['_trackPageview']);
+
+		 (function() {
+			 var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			 ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		 })();
+		 </script>
+
+		  <!-- plusone -->
+		  <script type="text/javascript">
+			  (function () {
+			   var po = document.createElement('script');
+			   po.type = 'text/javascript';
+			   po.async = true;
+			   po.src = 'https://apis.google.com/js/plusone.js';
+			   var s = document.getElementsByTagName('script')[0];
+			   s.parentNode.insertBefore(po, s);
+			   })();
+		   </script>
+		   <script type="text/javascript" src="_static/js/jquery.js"></script>
+		   <script type="text/javascript" src="_static/underscore.js"></script>
+		   <script type="text/javascript" src="_static/doctools.js"></script>
+<script type="text/javascript" src="_static/js/bootstrap-collapse.js"></script>
+<script>
+$(document).ready(function() {
+   $('table.docutils').attr("cellspacing", 0);
+   $('table.docutils').attr("cellpadding", 0);
+   $("table.docutils").attr("border", 0);
+   $("table.docutils").addClass("table table-striped");
+   $(".section").css("margin-top", "-40px");
+   $(".section").css("padding-top", "40px");
+   $('.note').toggleClass('alert alert-info');
+});
+</script>
+</body>
+</html>

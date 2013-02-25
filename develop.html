@@ -1,0 +1,261 @@
+
+<!DOCTYPE html><html lang="en">
+	<head>
+		<meta charset="utf-8">
+
+		
+		<title>How to develop the PyBonita lib &mdash; PyBonita 1.0 documentation</title>
+		<link href='http://fonts.googleapis.com/css?family=Abel' rel='stylesheet' type='text/css'>
+		<style type="text/css">
+			body {
+				padding-top: 60px;
+				padding-bottom: 40px;
+			}
+			.sidebar-nav {
+				padding: 9px 0;
+			}
+			a.headerlink {
+				color: white;
+			}
+			a.headerlink:hover {
+				color: #216d15;
+			}
+	  		@media (max-width: 480px), 
+			(max-width: 768px), 
+			(min-width: 768px) and (max-width: 980px),
+			(max-width: 980px) {
+				.fixedsidebar {
+					position: relative;
+				}
+				.content {
+					padding-left: 0;
+				}
+			}
+		  	@media (min-width: 980px),
+			(min-width: 1200px) {
+				.fixedsidebar {
+					position: fixed;
+					width: 260px;
+				}
+				.content {
+					padding-left: 280px;
+				}
+
+			}
+
+		</style>
+
+
+		<link rel="stylesheet" href="_static/css/bootstrap.css" type="text/css"/>
+		<link rel="stylesheet" href="_static/css/bootstrap-responsive.css" type="text/css"/>
+		<link rel="stylesheet" href="_static/pygments.css" type="text/css"/>
+
+		<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		<script type="text/javascript">
+			var DOCUMENTATION_OPTIONS = {
+URL_ROOT:'',
+	 VERSION:'1.0',
+	 COLLAPSE_INDEX:false,
+	 FILE_SUFFIX:'.html',
+	 HAS_SOURCE:  true
+			};
+</script>
+<link rel="top" title="PyBonita 1.0 documentation" href="index.html"/>
+<link rel="prev" title="How to use the PyBonita lib" href="usage.html"/> 
+<script type="text/javascript"
+	src="https://apis.google.com/js/plusone.js"></script>
+	</head>
+	<body>
+		<div class="navbar navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container-fluid">
+					<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</a>
+<a class="brand" href="index.html">PyBonita</a>
+<div class="nav-collapse">
+<ul class="nav">
+	<li>
+	<a href="genindex.html" title="General Index" accesskey="I">index</a>
+	</li>
+	<li>
+	<a href="py-modindex.html" title="Python Module Index" >modules</a>
+	</li>
+	<li>
+	<a href="usage.html" title="How to use the PyBonita lib" accesskey="P">previous</a>
+	</li> 
+</ul>
+</div>
+				</div>
+			</div>
+		</div>
+		  
+		<div class="container-fluid">
+			<div class="row-fluid">
+				<div class="span3">
+					
+<div class="well sidebar-nav fixedsidebar">
+		<ul>
+<li><a class="reference internal" href="#">How to develop the PyBonita lib</a><ul>
+<li><a class="reference internal" href="#guideline">Guideline</a></li>
+<li><a class="reference internal" href="#test-case">Test case</a><ul>
+<li><a class="reference internal" href="#with-bonita-server">With bonita Server</a></li>
+<li><a class="reference internal" href="#without-bonita-server">Without bonita Server</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#testing-before-developping">Testing before developping</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+				</div>
+				
+				<div class="span9 content">
+					
+  <div class="section" id="how-to-develop-the-pybonita-lib">
+<h1>How to develop the PyBonita lib</h1>
+<div class="section" id="guideline">
+<h2>Guideline</h2>
+<ul class="simple">
+<li>get_something methods return None if nothing found</li>
+<li>Bonita Server does not properly return HTTP code. It only return 500 error with body containing real HTTP error. To get ride of this stupid feature, you should use the BonitaHTTPError exception calling it with the HTTP error code and a message. For example :</li>
+</ul>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="c"># Bonita Server response with 500 error code</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">xml</span> <span class="o">=</span> <span class="n">BonitaServer</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span><span class="o">.</span><span class="n">sendRESTRequest</span><span class="p">()</span>
+<span class="k">except</span> <span class="n">BonitaHTTPError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;Bonita server raise an HTTP error code % with message %&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="n">err</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>method header must include docstring with something like this :</li>
+</ul>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">my_kick_ass_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">param1</span><span class="p">,</span><span class="n">param2</span><span class="p">,</span><span class="n">param3</span><span class="o">=</span><span class="n">default_value</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Short description of the method in one line.</span>
+
+<span class="sd">    Longer description. Could include some specific behaviors description.</span>
+
+<span class="sd">    Description of usable extra paramaters if any (those given in kwargs).</span>
+
+<span class="sd">    :param param1: description of param1, also set the default value if any</span>
+<span class="sd">    :type param1: type of param1 (either standard as int, str or class as BonitaUser)</span>
+<span class="sd">    :raise ExceptionClass: when the exception may be raised</span>
+<span class="sd">    :return: Type return by the method, iwht a description if complex type (list, tuple, etc)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span> <span class="c"># my method code</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="test-case">
+<h2>Test case</h2>
+<div class="section" id="with-bonita-server">
+<h3>With bonita Server</h3>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">pybonita.tests</span> <span class="kn">import</span> <span class="n">TestWithBonitaServer</span>
+
+<span class="k">class</span> <span class="nc">TestBidonA</span><span class="p">(</span><span class="n">TestWithBonitaServer</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">testA</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">BonitaServer</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s">&#39;localhost&#39;</span><span class="p">,</span> <span class="mi">9090</span><span class="p">,</span> <span class="s">&#39;restuser&#39;</span><span class="p">,</span> <span class="s">&#39;restbpm&#39;</span><span class="p">)</span>
+
+        <span class="n">user</span> <span class="o">=</span> <span class="n">BonitaUser</span><span class="p">(</span><span class="s">&#39;u1&#39;</span><span class="p">,</span><span class="s">&#39;p1&#39;</span><span class="p">)</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="without-bonita-server">
+<h3>Without bonita Server</h3>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">pybonita.tests</span> <span class="kn">import</span> <span class="n">TestWithMockedServer</span>
+
+<span class="k">class</span> <span class="nc">TestBidonB</span><span class="p">(</span><span class="n">TestWithMockedServer</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">testB</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">BonitaServer</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s">&#39;localhost&#39;</span><span class="p">,</span> <span class="mi">9090</span><span class="p">,</span> <span class="s">&#39;restuser&#39;</span><span class="p">,</span> <span class="s">&#39;restbpm&#39;</span><span class="p">)</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;/identityAPI/addUser&#39;</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="mi">204</span>
+        <span class="n">xml</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">BonitaServer</span><span class="o">.</span><span class="n">set_response_list</span><span class="p">([[</span><span class="n">url</span><span class="p">,</span><span class="n">code</span><span class="p">,</span><span class="n">xml</span><span class="p">]])</span>
+
+        <span class="n">user</span> <span class="o">=</span> <span class="n">BonitaUser</span><span class="p">(</span><span class="s">&#39;u2&#39;</span><span class="p">,</span><span class="s">&#39;p2&#39;</span><span class="p">)</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="testing-before-developping">
+<h2>Testing before developping</h2>
+<p>In order to test the calling requests, and the provided response, you could use the <a class="reference external" href="https://github.com/jkbr/httpie">HTTPie</a> tool and command like this one ::</p>
+<div class="highlight-python"><pre>http --auth restuser:restbpm POST http://serv-devbpm-integration.igbmc.u-strasbg.fr/bonita-server-rest/API/identityAPI/getAllUsers options="user:john" content-type:application/x-www-form-urlencoded</pre>
+</div>
+<p>Adding &#8211;verbose &#8211;stream &#8211;traceback options at start could help you</p>
+</div>
+</div>
+
+
+				</div>
+			</div>
+		</div>
+		<div class="footer">
+			
+			<div class="container">
+				&copy;
+				Copyright 2013, IGBMC - Service Info - Pôle Développement.
+				Created using <a
+					href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3
+				.
+				Theme adapted from
+				<a href="http://twitter.github.com/bootstrap/">Twitter's
+					Bootstrap</a>
+			</div>
+		</div>
+
+		
+
+		 <!-- analytics -->
+		 <script type="text/javascript">
+		 var _gaq = _gaq || [];
+		 _gaq.push(['_setAccount', 'UA-21443721-1']);
+		 _gaq.push(['_trackPageview']);
+
+		 (function() {
+			 var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			 ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		 })();
+		 </script>
+
+		  <!-- plusone -->
+		  <script type="text/javascript">
+			  (function () {
+			   var po = document.createElement('script');
+			   po.type = 'text/javascript';
+			   po.async = true;
+			   po.src = 'https://apis.google.com/js/plusone.js';
+			   var s = document.getElementsByTagName('script')[0];
+			   s.parentNode.insertBefore(po, s);
+			   })();
+		   </script>
+		   <script type="text/javascript" src="_static/js/jquery.js"></script>
+		   <script type="text/javascript" src="_static/underscore.js"></script>
+		   <script type="text/javascript" src="_static/doctools.js"></script>
+<script type="text/javascript" src="_static/js/bootstrap-collapse.js"></script>
+<script>
+$(document).ready(function() {
+   $('table.docutils').attr("cellspacing", 0);
+   $('table.docutils').attr("cellpadding", 0);
+   $("table.docutils").attr("border", 0);
+   $("table.docutils").addClass("table table-striped");
+   $(".section").css("margin-top", "-40px");
+   $(".section").css("padding-top", "40px");
+   $('.note').toggleClass('alert alert-info');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,595 @@
+
+<!DOCTYPE html><html lang="en">
+	<head>
+		<meta charset="utf-8">
+
+		
+		<title>pybonita.user &mdash; PyBonita 1.0 documentation</title>
+		<link href='http://fonts.googleapis.com/css?family=Abel' rel='stylesheet' type='text/css'>
+		<style type="text/css">
+			body {
+				padding-top: 60px;
+				padding-bottom: 40px;
+			}
+			.sidebar-nav {
+				padding: 9px 0;
+			}
+			a.headerlink {
+				color: white;
+			}
+			a.headerlink:hover {
+				color: #216d15;
+			}
+	  		@media (max-width: 480px), 
+			(max-width: 768px), 
+			(min-width: 768px) and (max-width: 980px),
+			(max-width: 980px) {
+				.fixedsidebar {
+					position: relative;
+				}
+				.content {
+					padding-left: 0;
+				}
+			}
+		  	@media (min-width: 980px),
+			(min-width: 1200px) {
+				.fixedsidebar {
+					position: fixed;
+					width: 260px;
+				}
+				.content {
+					padding-left: 280px;
+				}
+
+			}
+
+		</style>
+
+
+		<link rel="stylesheet" href="../../_static/css/bootstrap.css" type="text/css"/>
+		<link rel="stylesheet" href="_static/css/bootstrap-responsive.css" type="text/css"/>
+		<link rel="stylesheet" href="_static/pygments.css" type="text/css"/>
+
+		<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		<script type="text/javascript">
+			var DOCUMENTATION_OPTIONS = {
+URL_ROOT:'../../',
+	 VERSION:'1.0',
+	 COLLAPSE_INDEX:false,
+	 FILE_SUFFIX:'.html',
+	 HAS_SOURCE:  true
+			};
+</script>
+<link rel="top" title="PyBonita 1.0 documentation" href="../../index.html"/>
+<link rel="up" title="Module code" href="../index.html"/> 
+<script type="text/javascript"
+	src="https://apis.google.com/js/plusone.js"></script>
+	</head>
+	<body>
+		<div class="navbar navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container-fluid">
+					<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</a>
+<a class="brand" href="../../index.html">PyBonita</a>
+<div class="nav-collapse">
+<ul class="nav">
+	<li>
+	<a href="../../genindex.html" title="General Index" accesskey="I">index</a>
+	</li>
+	<li>
+	<a href="../../py-modindex.html" title="Python Module Index" >modules</a>
+	</li>
+	<li><a href="../index.html"
+		accesskey="U">Module code</a>
+	</li> 
+</ul>
+</div>
+				</div>
+			</div>
+		</div>
+		  
+		<div class="container-fluid">
+			<div class="row-fluid">
+				<div class="span3">
+					
+<div class="well sidebar-nav fixedsidebar">
+		
+</div>
+				</div>
+				
+				<div class="span9 content">
+					
+  <h1>Source code for pybonita.user</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">BeautifulSoup</span> <span class="kn">import</span> <span class="n">BeautifulStoneSoup</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">BonitaServer</span>
+<span class="kn">from</span> <span class="nn">.exception</span> <span class="kn">import</span> <span class="n">BonitaHTTPError</span>
+<span class="kn">from</span> <span class="nn">.object</span> <span class="kn">import</span> <span class="n">BonitaObject</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">dictToMapString</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;BonitaUser&#39;</span><span class="p">,</span><span class="s">&#39;BonitaGroup&#39;</span><span class="p">,</span><span class="s">&#39;BonitaRole&#39;</span><span class="p">,</span><span class="s">&#39;BonitaMembership&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="BonitaUser"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaUser">[docs]</a><span class="k">class</span> <span class="nc">BonitaUser</span><span class="p">(</span><span class="n">BonitaObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A class to map a user in Bonita.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">username</span><span class="p">,</span><span class="n">password</span><span class="p">,</span><span class="n">membership</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">role</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">group</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Build up a new BonitaUser</span>
+<span class="sd">        </span>
+<span class="sd">        :param username: username to use</span>
+<span class="sd">        :type username: str</span>
+<span class="sd">        :param password: password to set</span>
+<span class="sd">        :type password: str</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#TODO Add other params</span>
+        <span class="c"># membership ou (role,group) mais ils sont exclusifs</span>
+        <span class="c"># Prends aussi d&#39;autres parametres qui sont les champs d&#39;un user dans bontia :</span>
+        <span class="c"># firstname, lastname, title, jobtitle</span>
+        <span class="c"># professional contact : email, phone, mobiel, fax, website, apt./room, building, address, city, zipcode, state, country</span>
+        <span class="c"># personal contact : email, phone, mobiel, fax, website, apt./room, building, address, city, zipcode, state, country</span>
+        <span class="c"># other : added as metadata</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">password</span>
+    
+    <span class="k">def</span> <span class="nf">_generate_save_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">variables</span><span class="p">):</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;/identityAPI/addUser&quot;</span>
+        
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;password&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span>
+        
+        <span class="k">return</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+    
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_instanciate_from_xml</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Instanciate a BonitaUser from XML</span>
+<span class="sd">        </span>
+<span class="sd">        :param xml: the XML description of a user</span>
+<span class="sd">        :type xml: unicode</span>
+<span class="sd">        :return: BonitaUser</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulStoneSoup</span><span class="p">(</span><span class="n">xml</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;iso-8859-1&#39;</span><span class="p">))</span>
+
+        <span class="c"># First thing first : instanciate a new BonitaUser with username and password</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">BonitaUser</span><span class="p">(</span><span class="n">username</span><span class="p">,</span><span class="n">password</span><span class="p">)</span>
+
+        <span class="c"># Main properties now</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">uuid</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">uuid</span><span class="o">.</span><span class="n">text</span>
+        <span class="c">#TODO Must first check there is a firstname and a lastName in the soup</span>
+        <span class="c">#user.firstName = soup.user.firstName.text</span>
+        <span class="c">#user.lastName = soup.user.lastName.text</span>
+
+        <span class="c">#TODO Other properties then</span>
+
+        <span class="k">return</span> <span class="n">user</span>
+
+<span class="c">#&lt;User&gt;</span>
+<span class="c">#  &lt;dbid&gt;0&lt;/dbid&gt;</span>
+<span class="c">#  &lt;uuid&gt;3f4fee49-391c-4847-ac23-b99526773b02&lt;/uuid&gt;</span>
+<span class="c">#  &lt;firstName&gt;John&lt;/firstName&gt;</span>
+<span class="c">#  &lt;lastName&gt;Doe&lt;/lastName&gt;</span>
+<span class="c">#  &lt;password&gt;46e490cac450e85a9cba3059365826296771cc3&lt;/password&gt;</span>
+<span class="c">#  &lt;username&gt;john&lt;/username&gt;</span>
+<span class="c">#  &lt;metadata/&gt;</span>
+<span class="c">#  &lt;memberships&gt;</span>
+<span class="c">#    &lt;Membership&gt;</span>
+<span class="c">#      &lt;dbid&gt;0&lt;/dbid&gt;</span>
+<span class="c">#      &lt;uuid&gt;ef1fc933-a95b-443e-8c30-772eb394c123&lt;/uuid&gt;</span>
+<span class="c">#      &lt;role class=&quot;Role&quot;&gt;</span>
+<span class="c">#        &lt;description&gt;The user role&lt;/description&gt;</span>
+<span class="c">#        &lt;dbid&gt;0&lt;/dbid&gt;</span>
+<span class="c">#        &lt;uuid&gt;6a20e8a9-d703-44af-9cf6-cb2eea4ac515&lt;/uuid&gt;</span>
+<span class="c">#        &lt;name&gt;user&lt;/name&gt;</span>
+<span class="c">#        &lt;label&gt;User&lt;/label&gt;</span>
+<span class="c">#      &lt;/role&gt;</span>
+<span class="c">#      &lt;group class=&quot;Group&quot;&gt;</span>
+<span class="c">#        &lt;description&gt;The default group&lt;/description&gt;</span>
+<span class="c">#        &lt;dbid&gt;0&lt;/dbid&gt;</span>
+<span class="c">#        &lt;uuid&gt;603b07ad-7891-4843-8fda-6749a35cbd4d&lt;/uuid&gt;</span>
+<span class="c">#        &lt;name&gt;platform&lt;/name&gt;</span>
+<span class="c">#        &lt;label&gt;Platform&lt;/label&gt;</span>
+<span class="c">#      &lt;/group&gt;</span>
+<span class="c">#    &lt;/Membership&gt;</span>
+<span class="c">#  &lt;/memberships&gt;</span>
+<span class="c">#&lt;/User&gt;</span>
+
+    <span class="k">def</span> <span class="nf">_set_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">membership</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Add a user to a Membership.</span>
+<span class="sd">        </span>
+<span class="sd">        :param membership: the membership to add the user in</span>
+<span class="sd">        :type membership: BonitaMembership</span>
+<span class="sd">        :raise Exception: if provided data does not lead to something on the BonitaServer (unknown role for ex.)</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;/identityAPI/addMembershipToUser/&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">uuid</span><span class="o">+</span><span class="s">&quot;/&quot;</span><span class="o">+</span><span class="n">membership</span><span class="o">.</span><span class="n">uuid</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">sendRESTRequest</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Exception&#39;</span>
+    
+    
+    <span class="n">membership</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span><span class="n">_set_membership</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+    
+<span class="c">#    def _set_membership(self,membership=None,role=None,group=None):</span>
+<span class="c">#        &quot;&quot;&quot; Add a user to a Membership.</span>
+<span class="c">#        You should define membership or at least role and group.</span>
+<span class="c">#        </span>
+<span class="c">#        :param membership:</span>
+<span class="c">#        :type membership:</span>
+<span class="c">#        :param role:</span>
+<span class="c">#        :type role:</span>
+<span class="c">#        :param group:</span>
+<span class="c">#        :type group:</span>
+<span class="c">#        :raise Exception: if no data is provided</span>
+<span class="c">#        :raise Exception: if provided data does not lead to something on the BonitaServer (unknown role for ex.)</span>
+<span class="c">#        </span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#        pass</span>
+
+    
+<div class="viewcode-block" id="BonitaUser.set_manager"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaUser.set_manager">[docs]</a>    <span class="k">def</span> <span class="nf">set_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">user</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Define the Manager of a user </span>
+<span class="sd">        </span>
+<span class="sd">        :param user: the manager to set with</span>
+<span class="sd">        :type user: BonitaUser</span>
+<span class="sd">        :raise ValueError: manager user is unknown in BonitaServer</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+    </div>
+<div class="viewcode-block" id="BonitaUser.set_delegee"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaUser.set_delegee">[docs]</a>    <span class="k">def</span> <span class="nf">set_delegee</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">user</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Define the Delegee of a user </span>
+<span class="sd">        </span>
+<span class="sd">        :param user: the delegee to set with</span>
+<span class="sd">        :type user: BonitaUser</span>
+<span class="sd">        :raise ValueError: delegee user is unknown in BonitaServer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+    </div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BonitaUser.get_user_by_username"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaUser.get_user_by_username">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_by_username</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">username</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Retrieve a User with the username</span>
+
+<span class="sd">        :param username: the username of the user to retrieve</span>
+<span class="sd">        :type username: str</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;/identityAPI/getUser/&#39;</span><span class="o">+</span><span class="n">username</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">xml</span> <span class="o">=</span> <span class="n">BonitaServer</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span><span class="o">.</span><span class="n">sendRESTRequest</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">BonitaHTTPError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;UserNotFoundException&#39;</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">err</span><span class="o">.</span><span class="n">bonita_exception</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="n">user</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_instanciate_from_xml</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">user</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BonitaUser.get_user_by_uuid"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaUser.get_user_by_uuid">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_by_uuid</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">uuid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Retrieve a User with the UUID </span>
+
+<span class="sd">        :param uuid: the UUID of the user to retrieve</span>
+<span class="sd">        :type uuid: str</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;/identityAPI/getUserByUUID/&#39;</span><span class="o">+</span><span class="n">uuid</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">xml</span> <span class="o">=</span> <span class="n">BonitaServer</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span><span class="o">.</span><span class="n">sendRESTRequest</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">BonitaHTTPError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;UserNotFoundException&#39;</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">err</span><span class="o">.</span><span class="n">bonita_exception</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="n">user</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_instanciate_from_xml</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">user</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BonitaUser.get_user"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaUser.get_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_user</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Retrieve a User with given parameter</span>
+
+<span class="sd">        Parameter can be any of :</span>
+<span class="sd">        - username</span>
+<span class="sd">        - uuid</span>
+
+<span class="sd">        :raise TypeError: if call with unknown parameter</span>
+<span class="sd">        :return: BonitaUser instance or None if not found</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s">&#39;username&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">get_user_by_username</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s">&#39;uuid&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">get_user_by_uuid</span><span class="p">(</span><span class="n">uuid</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;uuid&#39;</span><span class="p">])</span>
+        
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;called get_user with unknown param : </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    
+    <span class="c"># setter par parametre</span>
+    <span class="c"># par exemple on fait :</span>
+    <span class="c"># user = BonitaUser(login,pass)</span>
+    <span class="c"># puis on peut faire user.firstname = &#39;coucou&#39; et ca mets a jour le champs firstname directement</span>
+</div></div>
+<div class="viewcode-block" id="BonitaGroup"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaGroup">[docs]</a><span class="k">class</span> <span class="nc">BonitaGroup</span><span class="p">(</span><span class="n">BonitaObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A class to map a group in Bonita.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">label</span><span class="p">,</span><span class="n">description</span><span class="p">,</span><span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Build up a new BonitaGroup</span>
+<span class="sd">        </span>
+<span class="sd">        :param name: Name of the group</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param label: Label of the group</span>
+<span class="sd">        :type label: str</span>
+<span class="sd">        :param description: Description of the group</span>
+<span class="sd">        :type username: str</span>
+<span class="sd">        :param parent: Parent of the group, default to root (&#39;/&#39;)</span>
+<span class="sd">        :type parent: BonitaGroup</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+        <span class="k">if</span> <span class="n">parent</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span><span class="n">BonitaGroup</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;parent must be None or a BonitaGroup&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+    
+    
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_instanciate_from_xml</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Instanciate a BonitaGroup from XML</span>
+<span class="sd">        </span>
+<span class="sd">        :param xml: the XML description of a group</span>
+<span class="sd">        :type xml: unicode</span>
+<span class="sd">        :return: BonitaGroup</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulStoneSoup</span><span class="p">(</span><span class="n">xml</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;iso-8859-1&#39;</span><span class="p">))</span>
+
+        <span class="c"># First thing first : instanciate a new BonitaGroup</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">group</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">group</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">group</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">BonitaGroup</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">label</span><span class="p">,</span><span class="n">description</span><span class="p">)</span>
+
+        <span class="c"># Main properties now</span>
+        <span class="n">group</span><span class="o">.</span><span class="n">uuid</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">group</span><span class="o">.</span><span class="n">uuid</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="c"># Other properties then</span>
+        <span class="c">#TODO Add parent Group</span>
+
+        <span class="k">return</span> <span class="n">group</span>
+
+<span class="c">#&lt;Group&gt;</span>
+<span class="c">#&lt;description&gt;Service de genotypage&lt;/description&gt;</span>
+<span class="c">#&lt;dbid&gt;0&lt;/dbid&gt;</span>
+<span class="c">#&lt;uuid&gt;fc13ad9b-1666-47e4-9ec0-d18607cd35ad&lt;/uuid&gt;</span>
+<span class="c">#&lt;name&gt;genotypage&lt;/name&gt;</span>
+<span class="c">#&lt;label&gt;Genotypage&lt;/label&gt;</span>
+<span class="c">#&lt;parentGroup class=&quot;Group&quot;&gt;</span>
+<span class="c">#&lt;description&gt;The default group&lt;/description&gt;</span>
+<span class="c">#&lt;dbid&gt;0&lt;/dbid&gt;</span>
+<span class="c">#&lt;uuid&gt;c18bb42b-2fee-4a08-9ab6-fe61d3be726e&lt;/uuid&gt;</span>
+<span class="c">#&lt;name&gt;platform&lt;/name&gt;</span>
+<span class="c">#&lt;label&gt;Platform&lt;/label&gt;</span>
+<span class="c">#&lt;/parentGroup&gt;</span>
+<span class="c">#&lt;/Group&gt;</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BonitaGroup.get_group_by_path"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaGroup.get_group_by_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_group_by_path</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Retrieve a Group with the path</span>
+
+<span class="sd">        :param path: the path of the group to retrieve</span>
+<span class="sd">        :type path: str</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;/identityAPI/getGroupUsingPath/&#39;</span><span class="o">+</span><span class="n">path</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;hierarchy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">part_path</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span>
+            <span class="n">data</span><span class="p">[</span><span class="s">&#39;hierarchy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part_path</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">xml</span> <span class="o">=</span> <span class="n">BonitaServer</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span><span class="o">.</span><span class="n">sendRESTRequest</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">BonitaHTTPError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;GroupNotFoundException&#39;</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">err</span><span class="o">.</span><span class="n">bonita_exception</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="n">group</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_instanciate_from_xml</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">group</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BonitaGroup.get_group_by_uuid"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaGroup.get_group_by_uuid">[docs]</a>    <span class="k">def</span> <span class="nf">get_group_by_uuid</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">uuid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Retrieve a Group with the UUID </span>
+
+<span class="sd">        :param uuid: the UUID of the group to retrieve</span>
+<span class="sd">        :type uuid: str</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;/identityAPI/getGroupByUUID/&#39;</span><span class="o">+</span><span class="n">uuid</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">xml</span> <span class="o">=</span> <span class="n">BonitaServer</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span><span class="o">.</span><span class="n">sendRESTRequest</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">BonitaHTTPError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;GroupNotFoundException&#39;</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">err</span><span class="o">.</span><span class="n">bonita_exception</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="n">group</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_instanciate_from_xml</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">group</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BonitaGroup.get_group"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaGroup.get_group">[docs]</a>    <span class="k">def</span> <span class="nf">get_group</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;  Retrieve a Group with given parameter</span>
+
+<span class="sd">        Parameter can be any of :</span>
+<span class="sd">        - path</span>
+<span class="sd">        - uuid</span>
+
+<span class="sd">        :raise TypeError: if call with unknown parameter</span>
+<span class="sd">        :return: BonitaGroup instance or None if not found</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s">&#39;path&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">get_group_by_path</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s">&#39;uuid&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">get_group_by_uuid</span><span class="p">(</span><span class="n">uuid</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;uuid&#39;</span><span class="p">])</span>
+        
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;called get_group with unknown param : </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BonitaGroup.get_default_root_group"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaGroup.get_default_root_group">[docs]</a>    <span class="k">def</span> <span class="nf">get_default_root_group</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Retrieve BonitaGroup which is the root, currently the /platform group.</span>
+
+<span class="sd">        :return: BonitaGroup for /platform</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">get_group_by_path</span><span class="p">(</span><span class="s">&#39;/platform&#39;</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="BonitaRole"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaRole">[docs]</a><span class="k">class</span> <span class="nc">BonitaRole</span><span class="p">(</span><span class="n">BonitaObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A class to map a role in Bonita.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+    
+    <span class="k">def</span> <span class="nf">_generate_save_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">variables</span><span class="p">):</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;/identityAPI/addRole/&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        <span class="k">return</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_generate_delete_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">variables</span><span class="p">):</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;/identityAPI/removeRole/&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        <span class="k">return</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+    
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BonitaRole.getRoleByName"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaRole.getRoleByName">[docs]</a>    <span class="k">def</span> <span class="nf">getRoleByName</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Retrieve a role given a name &quot;&quot;&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;/identityAPI/getRole/&quot;</span><span class="o">+</span><span class="n">name</span>
+        <span class="k">pass</span>
+    </div>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getRoleByUUID</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">uuid</span><span class="p">):</span>
+        <span class="k">pass</span>
+    
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getRole</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">pass</span>
+    
+</div>
+<div class="viewcode-block" id="BonitaMembership"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaMembership">[docs]</a><span class="k">class</span> <span class="nc">BonitaMembership</span><span class="p">(</span><span class="n">BonitaObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A class to map a membership in Bonita.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BonitaMembership.getMembershipByRoleAndGroup"><a class="viewcode-back" href="../../api.html#pybonita.user.BonitaMembership.getMembershipByRoleAndGroup">[docs]</a>    <span class="k">def</span> <span class="nf">getMembershipByRoleAndGroup</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">role</span><span class="p">,</span><span class="n">group</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Retrieve a membership given a role and a group </span>
+<span class="sd">        </span>
+<span class="sd">        :param role:</span>
+<span class="sd">        :type role: BonitaRole</span>
+<span class="sd">        :param group:</span>
+<span class="sd">        :type group: BonitaGroup</span>
+<span class="sd">        :raise Exception: if role or group is unknwo on server</span>
+<span class="sd">        </span>
+<span class="sd">        TODO Return None or Raise exception if no membership found ?</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+    </div>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getMembershipByUUID</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">uuid</span><span class="p">):</span>
+        <span class="k">pass</span>
+    
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getMembership</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div></div>
+
+				</div>
+			</div>
+		</div>
+		<div class="footer">
+			
+			<div class="container">
+				&copy;
+				Copyright 2013, IGBMC - Service Info - Pôle Développement.
+				Created using <a
+					href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3
+				.
+				Theme adapted from
+				<a href="http://twitter.github.com/bootstrap/">Twitter's
+					Bootstrap</a>
+			</div>
+		</div>
+
+		
+
+		 <!-- analytics -->
+		 <script type="text/javascript">
+		 var _gaq = _gaq || [];
+		 _gaq.push(['_setAccount', 'UA-21443721-1']);
+		 _gaq.push(['_trackPageview']);
+
+		 (function() {
+			 var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			 ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		 })();
+		 </script>
+
+		  <!-- plusone -->
+		  <script type="text/javascript">
+			  (function () {
+			   var po = document.createElement('script');
+			   po.type = 'text/javascript';
+			   po.async = true;
+			   po.src = 'https://apis.google.com/js/plusone.js';
+			   var s = document.getElementsByTagName('script')[0];
+			   s.parentNode.insertBefore(po, s);
+			   })();
+		   </script>
+		   <script type="text/javascript" src="_static/js/jquery.js"></script>
+		   <script type="text/javascript" src="_static/underscore.js"></script>
+		   <script type="text/javascript" src="_static/doctools.js"></script>
+<script type="text/javascript" src="_static/js/bootstrap-collapse.js"></script>
+<script>
+$(document).ready(function() {
+   $('table.docutils').attr("cellspacing", 0);
+   $('table.docutils').attr("cellpadding", 0);
+   $("table.docutils").attr("border", 0);
+   $("table.docutils").addClass("table table-striped");
+   $(".section").css("margin-top", "-40px");
+   $(".section").css("padding-top", "40px");
+   $('.note').toggleClass('alert alert-info');
+});
+</script>
+</body>
+</html>
