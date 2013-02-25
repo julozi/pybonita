@@ -9,6 +9,7 @@ from xml.dom.minidom import parseString
 from BeautifulSoup import BeautifulStoneSoup
 
 from pybonita import logger
+from pybonita.exception import BonitaHTTPError
 from pybonita.object import BonitaObject
 from pybonita.server import BonitaServer
 from pybonita.utils import dictToMapString
@@ -27,16 +28,31 @@ class BonitaProcess(BonitaObject):
 
     @classmethod
     def get(cls, uuid):
+        """ Retrieve a process from its uuid
 
+        :param uuid: uuid of the process to retrieve
+        :type uuid: str
+        :returns: BonitaProcess -- the retrieved process.
+
+        """
         url = "/queryDefinitionAPI/getProcess/%s" % uuid
 
-        xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        try:
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        except BonitaHTTPError:
+            return None
 
         return BonitaProcess._instanciate_from_xml(xml)
 
     @classmethod
     def get_processes(cls, process_id):
+        """ Get all processes version for a given process id
 
+        :param process_id: process id
+        :type process_id: str
+        :returns: BonitaProcess list
+
+        """
         url = "/queryDefinitionAPI/getProcessesByProcessId/%s" % process_id
 
         xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -51,6 +67,7 @@ class BonitaProcess(BonitaObject):
 
     @classmethod
     def _instanciate_from_xml(cls, xml):
+        """ Instanciate a BonitaProcess object from its xml definition """
 
         soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
 
@@ -75,8 +92,9 @@ class BonitaProcess(BonitaObject):
     def get_cases(self):
         """ Get all existing cases from the process
 
-        """
+        :returns: BonitaCase list
 
+        """
         url = "/queryRuntimeAPI/getProcessInstances/%s" % self.uuid
 
         xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -94,7 +112,13 @@ class BonitaCase(BonitaObject):
 
     @classmethod
     def get(cls, uuid):
+        """ Retrieve a case from its uuid
 
+        :param uuid: uuid of the case to retrieve
+        :type uuid: str
+        :returns: BonitaCase -- the retrieved case
+
+        """
         url = "/queryRuntimeAPI/getProcessInstance/%s" % uuid
 
         xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -103,6 +127,13 @@ class BonitaCase(BonitaObject):
 
     @classmethod
     def get_cases(cls, process_id):
+        """ Retrieve all cases for the processes associated to the given
+        process_id
+
+        :param process_id: process id
+        :type process_id: str
+        :returns: BonitaCase list
+        """
 
         processes = BonitaProcess.get_processes(process_id)
 
@@ -114,7 +145,7 @@ class BonitaCase(BonitaObject):
 
     @classmethod
     def _instanciate_from_xml(cls, xml):
-
+        """ Instanciate a BonitaCase object from its xml definition """
         soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
         process = BonitaProcess(soup.processinstance.processuuid.text)
         uuid = soup.processinstance.instanceuuid.text
@@ -125,6 +156,16 @@ class BonitaCase(BonitaObject):
         return case
 
     def __init__(self, process, uuid=None, variables=None):
+        """ Initialize a new case
+
+        :param process: The process to use to run the case
+        :type process: BonitaProcess
+        :param uuid: The case uuid
+        :type uuid: str
+        :param variables: Values of the process variables
+        :type variables: dict
+
+        """
 
         self.uuid = uuid
         self._process = process
@@ -134,6 +175,12 @@ class BonitaCase(BonitaObject):
         self._started_date = None
 
     def start(self, user=None):
+        """ Start the case
+
+        :param user: case actor used to start the case
+        :type user: str
+
+        """
 
         if self.state != None:
             raise Exception("case already started on uuid %s" % self.uuid)
@@ -163,6 +210,7 @@ class BonitaCase(BonitaObject):
         self.refresh()
 
     def save(self):
+        """ Save case modified variables values """
 
         if self.state == None:
             raise Exception("The Bonita case is not started")
@@ -178,9 +226,7 @@ class BonitaCase(BonitaObject):
 
 
     def refresh(self, xml=None):
-        """ Refresh current instance with data from the BonitaServer
-
-        """
+        """ Refresh current instance with data from the BonitaServer """
 
         if xml == None:
             url = "/queryRuntimeAPI/getProcessInstance/%s" % self.uuid
