@@ -135,7 +135,7 @@ class BonitaUser(BonitaObject):
 #        pass
 
     
-    def setManager(self,user):
+    def set_manager(self,user):
         """ Define the Manager of a user 
         
         :param user: the manager to set with
@@ -145,7 +145,7 @@ class BonitaUser(BonitaObject):
         """
         pass
     
-    def setDelegee(self,user):
+    def set_delegee(self,user):
         """ Define the Delegee of a user 
         
         :param user: the delegee to set with
