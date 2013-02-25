@@ -80,7 +80,7 @@ Testing before developping
 
 In order to test the calling requests, and the provided response, you could use the `HTTPie`_ tool and command like this one :::
 
-    http --auth restuser:restbpm POST http://serv-devbpm-integration.igbmc.u-strasbg.fr/bonita-server-rest/API/identityAPI/getAllUsers content-type:application/x-www-form-urlencoded
+    http --auth restuser:restbpm POST http://serv-devbpm-integration.igbmc.u-strasbg.fr/bonita-server-rest/API/identityAPI/getAllUsers options="user:john" content-type:application/x-www-form-urlencoded
 
 Adding --verbose --stream --traceback options at start could help you
 

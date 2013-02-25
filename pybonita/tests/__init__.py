@@ -295,3 +295,25 @@ def build_bonita_user_xml(uuid,password='',username=''):
         tag_user.append(tag)
 
     return soup.prettify()
+
+def build_bonita_group_xml(uuid):
+    """ Build XML for a Bonita Group information """
+    from BeautifulSoup import Tag, BeautifulStoneSoup
+
+    # Build XML body
+    soup=BeautifulStoneSoup()
+#    tag_user = Tag(soup,'user')
+#    tag_uuid = Tag(soup,'uuid')
+#    tag_password = Tag(soup,'password')
+#    tag_username = Tag(soup,'username')
+
+#    tag_uuid.setString(uuid)
+#    tag_password.setString(password)
+#    tag_username.setString(username)
+#    user_tags = [tag_uuid,tag_password,tag_username]
+
+#    soup.insert(0,tag_user)
+#    for tag in user_tags:
+#        tag_user.append(tag)
+
+    return soup.prettify()

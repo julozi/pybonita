@@ -16,7 +16,7 @@ class BonitaUser(BonitaObject):
     """
     
     def __init__(self,username,password,membership=None,role=None,group=None,**kwargs):
-        """ Add a new user in Bonita.
+        """ Build up a new BonitaUser
         
         :param username: username to use
         :type username: str
@@ -24,6 +24,7 @@ class BonitaUser(BonitaObject):
         :type password: str
         
         """
+        #TODO Add other params
         # membership ou (role,group) mais ils sont exclusifs
         # Prends aussi d'autres parametres qui sont les champs d'un user dans bontia :
         # firstname, lastname, title, jobtitle
@@ -62,11 +63,11 @@ class BonitaUser(BonitaObject):
 
         # Main properties now
         user.uuid = soup.user.uuid.text
-        # Must first check there is a firstname and a lastName in the soup
+        #TODO Must first check there is a firstname and a lastName in the soup
         #user.firstName = soup.user.firstName.text
         #user.lastName = soup.user.lastName.text
 
-        # Other properties then
+        #TODO Other properties then
 
         return user
 
@@ -196,12 +197,22 @@ class BonitaUser(BonitaObject):
 
     @classmethod
     def get_user(cls,**kwargs):
+        """ Retrieve a User with given parameter
+
+        Parameter can be any of :
+        - username
+        - uuid
+
+        :raise TypeError: if call with unknown parameter
+        :return: BonitaUser instance or None if not found
+
+        """
         if 'username' in kwargs:
             return cls.get_user_by_username(username=kwargs['username'])
         if 'uuid' in kwargs:
             return cls.get_user_by_uuid(uuid=kwargs['uuid'])
         
-        raise TypeError('called getUser with unknown param : %s' % (kwargs.keys()))
+        raise TypeError('called get_user with unknown param : %s' % (kwargs.keys()))
     
     # setter par parametre
     # par exemple on fait :
@@ -214,15 +225,140 @@ class BonitaGroup(BonitaObject):
     """
     
     def __init__(self,name,label,description,parent=None):
-        pass
+        """ Build up a new BonitaGroup
+        
+        :param name: Name of the group
+        :type name: str
+        :param label: Label of the group
+        :type label: str
+        :param description: Description of the group
+        :type username: str
+        :param parent: Parent of the group, default to root ('/')
+        :type parent: BonitaGroup
+        
+        """
+        self.name = name
+        self.label = label
+        self.description = description
+
+        if parent != None and not isinstance(parent,BonitaGroup):
+            raise TypeError('parent must be None or a BonitaGroup')
+
+        self.parent = parent
     
-    def setParent(self,parent):
-        pass
     
-    def _get_path(self):
-        pass
-    
-    path = property(_get_path,None,None)
+    @classmethod
+    def _instanciate_from_xml(cls, xml):
+        """ Instanciate a BonitaGroup from XML
+        
+        :param xml: the XML description of a group
+        :type xml: unicode
+        :return: BonitaGroup
+        
+        """
+        soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
+
+        # First thing first : instanciate a new BonitaGroup
+        description = soup.group.description.text
+        name = soup.group.name.text
+        label = soup.group.label.text
+        group = BonitaGroup(name,label,description)
+
+        # Main properties now
+        group.uuid = soup.group.uuid.text
+
+        # Other properties then
+        #TODO Add parent Group
+
+        return group
+
+#<Group>
+#<description>Service de genotypage</description>
+#<dbid>0</dbid>
+#<uuid>fc13ad9b-1666-47e4-9ec0-d18607cd35ad</uuid>
+#<name>genotypage</name>
+#<label>Genotypage</label>
+#<parentGroup class="Group">
+#<description>The default group</description>
+#<dbid>0</dbid>
+#<uuid>c18bb42b-2fee-4a08-9ab6-fe61d3be726e</uuid>
+#<name>platform</name>
+#<label>Platform</label>
+#</parentGroup>
+#</Group>
+
+    @classmethod
+    def get_group_by_path(cls,path):
+        """ Retrieve a Group with the path
+
+        :param path: the path of the group to retrieve
+        :type path: str
+
+        """
+        url = '/identityAPI/getGroupUsingPath/'+path
+
+        data = dict()
+        data['hierarchy'] = []
+        for part_path in path.split('/'):
+            data['hierarchy'].append(part_path)
+
+        try:
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        except BonitaHTTPError as err:
+            if 'GroupNotFoundException'.lower() in err.bonita_exception.lower():
+                return None
+
+        group = cls._instanciate_from_xml(xml)
+
+        return group
+
+    @classmethod
+    def get_group_by_uuid(cls,uuid):
+        """ Retrieve a Group with the UUID 
+
+        :param uuid: the UUID of the group to retrieve
+        :type uuid: str
+
+        """
+        url = '/identityAPI/getGroupByUUID/'+uuid
+
+        try:
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        except BonitaHTTPError as err:
+            if 'GroupNotFoundException'.lower() in err.bonita_exception.lower():
+                return None
+
+        group = cls._instanciate_from_xml(xml)
+
+        return group
+
+    @classmethod
+    def get_group(cls,**kwargs):
+        """  Retrieve a Group with given parameter
+
+        Parameter can be any of :
+        - path
+        - uuid
+
+        :raise TypeError: if call with unknown parameter
+        :return: BonitaGroup instance or None if not found
+
+        """
+        if 'path' in kwargs:
+            return cls.get_group_by_path(path=kwargs['path'])
+        if 'uuid' in kwargs:
+            return cls.get_group_by_uuid(uuid=kwargs['uuid'])
+        
+        raise TypeError('called get_group with unknown param : %s' % (kwargs.keys()))
+
+    @classmethod
+    def get_default_root_group(cls):
+        """ Retrieve BonitaGroup which is the root, currently the /platform group.
+
+        :return: BonitaGroup for /platform
+        """
+        return cls.get_group_by_path('/platform')
+
 
 class BonitaRole(BonitaObject):
     """ A class to map a role in Bonita.
