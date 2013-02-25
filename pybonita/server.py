@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+from BeautifulSoup import BeautifulStoneSoup
+
 import requests
 from requests.auth import HTTPBasicAuth
 
+from pybonita import logger
 from .exception import BonitaServerNotInitializedError,ServerNotReachableError,\
     UnexpectedResponseError, BonitaHTTPError
 
@@ -71,12 +74,14 @@ class BonitaServer:
                     import re
                     soup = BeautifulStoneSoup(response.text)
                     bonita_exception = soup.find(name=re.compile("exception")).name
-                    message = soup.detailMessage
-                    code = soup.errorCode
-                    if code != None and message != None:
-                        raise BonitaHTTPError(bonita_exception,code,message)
+                    message = soup.detailmessage.text
+                    code = int(soup.errorCode.text) if soup.errorCode != None else 500
+                    if code != None or message != None:
+                        raise BonitaHTTPError(bonita_exception=bonita_exception,code=code,message=message)
                     else:
                         raise UnexpectedResponseError
+
+            print response.text
 
             return response.text
 
