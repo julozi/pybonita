@@ -7,7 +7,7 @@ __all__ = ['TestWithBonitaServer','TestWithMockedServer',
 
 
 class TestWithBonitaServer(TestCase):
-    
+
     def __init__(self,methodName='runTest'):
         import pybonita
         pybonita.BonitaServer = pybonita.BonitaServer
@@ -45,7 +45,7 @@ class BonitaMockedServerImpl(object):
 
     def sendRESTRequest(self, url, user=None, data=dict()):
         """ Do not call a BonitaServer, but rather access the reponses list given prior to this method call.
-        
+
         """
         import re
         from BeautifulSoup import BeautifulStoneSoup
@@ -146,7 +146,7 @@ class BonitaMockedServerImpl(object):
                 n -= 1
 
             if n == 0:
-                raise Exception('No already sets response for url %s and method %s' % (url_parse,method))
+                raise Exception('No already sets response for url %s and method %s' % (parse,method))
 
             url_parse = '/'.join(split_parse[0:n])
             # Extract the first response in row
@@ -203,26 +203,26 @@ class BonitaMockedServerImpl(object):
 @classmethod
 def set_response_list(cls,response_list):
     """ Set the response list for next requests.
-    
+
     :param list: List of entries as detailled after
     :raise: ValueError if response_list is not a list and each entry does not belong to the correct schema
-    
+
     An Entry is a dict containing :
     :base_url: base URL the Request will be call (any further params will be ignored)
     :method: the HTTP method of the Request. If not specified, default will be POST
     :status: the HTTP response status
     :type: the HTTP response mime type. If not specified, default will be xml
     :message: the HTTP response body
-    
+
     An Entry could also be a list of only 3 params :
     :0: base_url
     :1: status
     :2: message
-    
+
     """
     if not isinstance(response_list,list):
         raise ValueError('response_list arg must be a list')
-    
+
     # Run through the responses
     for response in response_list:
         if not isinstance(response,(list,dict)):
@@ -256,7 +256,8 @@ def build_dumb_bonita_error_body(exception='',code='',message=''):
     # Add your own Bonita java Exception in this dict to make your call shorter
     # So you can call with exception='UserNotFoundException'
     # rather than exception = 'org.ow2.bonita.facade.exception.UserNotFoundException'
-    java_exception_dict = {'UserNotFoundException':'org.ow2.bonita.facade.exception.UserNotFoundException'}
+    java_exception_dict = {'UserNotFoundException'      :'org.ow2.bonita.facade.exception.UserNotFoundException',
+                           'ProcessNotFoundException'   :'org.ow2.bonita.facade.exception.ProcessNotFoundException'}
     exception_text = java_exception_dict.get(exception,exception)
 
     # Build XML body
@@ -315,5 +316,38 @@ def build_bonita_group_xml(uuid):
 #    soup.insert(0,tag_user)
 #    for tag in user_tags:
 #        tag_user.append(tag)
+
+    return soup.prettify()
+
+def build_bonita_process_definition_xml(uuid, name=None, version=None, label=None, description=None):
+
+    from BeautifulSoup import Tag, BeautifulStoneSoup
+
+    soup = BeautifulStoneSoup()
+
+    tag_process = Tag(soup, "ProcessDefinition")
+
+    tag_description = Tag(soup, "description")
+    tag_description.setString(description if description != None else "%s description" % uuid)
+
+    tag_name = Tag(soup, "name")
+    tag_name.setString(name if name != None else uuid.split("--")[0])
+
+    tag_label = Tag(soup, "label")
+    tag_label.setString(label if label != None else uuid.split("--")[0])
+
+    tag_uuid = Tag(soup, "uuid")
+    tag_value = Tag(soup, "value")
+    tag_value.setString(uuid)
+    tag_uuid.append(tag_value)
+
+    tag_version = Tag(soup, "version")
+    tag_version.setString(version if version != None else uuid.split("--")[1])
+
+    process_tags = [tag_description, tag_name, tag_label, tag_uuid, tag_version]
+
+    soup.insert(0, tag_process)
+    for tag in process_tags:
+        tag_process.append(tag)
 
     return soup.prettify()
