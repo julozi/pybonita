@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from BeautifulSoup import BeautifulStoneSoup
+from bs4 import BeautifulSoup
 
 from . import logger, BonitaServer
 from .exception import BonitaHTTPError
@@ -245,8 +245,7 @@ class BonitaGroup(BonitaObject):
             raise TypeError('parent must be None or a BonitaGroup')
 
         self.parent = parent
-    
-    
+
     @classmethod
     def _instanciate_from_xml(cls, xml):
         """ Instanciate a BonitaGroup from XML
@@ -256,11 +255,11 @@ class BonitaGroup(BonitaObject):
         :return: BonitaGroup
         
         """
-        soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
+        soup = BeautifulSoup(xml,'xml')
 
         # First thing first : instanciate a new BonitaGroup
         description = soup.group.description.text
-        name = soup.group.name.text
+        name = soup.group.find('name').text # name is a method of Tag soup.group, so we must use find()
         label = soup.group.label.text
         group = BonitaGroup(name,label,description)
 
@@ -269,22 +268,31 @@ class BonitaGroup(BonitaObject):
 
         # Other properties then
         #TODO Add parent Group
+        #parent_hierarchy = soup.group.parentGroup
+        #group.parent = 
 
         return group
 
 #<Group>
-#<description>Service de genotypage</description>
-#<dbid>0</dbid>
-#<uuid>fc13ad9b-1666-47e4-9ec0-d18607cd35ad</uuid>
-#<name>genotypage</name>
-#<label>Genotypage</label>
-#<parentGroup class="Group">
-#<description>The default group</description>
-#<dbid>0</dbid>
-#<uuid>c18bb42b-2fee-4a08-9ab6-fe61d3be726e</uuid>
-#<name>platform</name>
-#<label>Platform</label>
-#</parentGroup>
+#  <description>desc1</description>
+#  <dbid>0</dbid>
+#  <uuid>dc947b56-7f46-4aa6-9f14-d2c904e2c79c</uuid>
+#  <name>testtony</name>
+#  <label>label1</label>
+#  <parentGroup class="Group">
+#    <description>Service de genotypage</description>
+#    <dbid>0</dbid>
+#    <uuid>fc13ad9b-1666-47e4-9ec0-d18607cd35ad</uuid>
+#    <name>genotypage</name>
+#    <label>Genotypage</label>
+#    <parentGroup class="Group">
+#      <description>The default group</description>
+#      <dbid>0</dbid>
+#      <uuid>c18bb42b-2fee-4a08-9ab6-fe61d3be726e</uuid>
+#      <name>platform</name>
+#      <label>Platform</label>
+#    </parentGroup>
+#  </parentGroup>
 #</Group>
 
     @classmethod

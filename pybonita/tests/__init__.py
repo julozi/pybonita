@@ -3,7 +3,8 @@
 from unittest import TestCase
 
 __all__ = ['TestWithBonitaServer','TestWithMockedServer',
-    'build_dumb_bonita_error_body','build_bonita_user_xml']
+    'build_dumb_bonita_error_body','build_bonita_user_xml',
+    'build_bonita_group_xml']
 
 
 class TestWithBonitaServer(TestCase):
@@ -256,8 +257,9 @@ def build_dumb_bonita_error_body(exception='',code='',message=''):
     # Add your own Bonita java Exception in this dict to make your call shorter
     # So you can call with exception='UserNotFoundException'
     # rather than exception = 'org.ow2.bonita.facade.exception.UserNotFoundException'
-    java_exception_dict = {'UserNotFoundException'      :'org.ow2.bonita.facade.exception.UserNotFoundException',
-                           'ProcessNotFoundException'   :'org.ow2.bonita.facade.exception.ProcessNotFoundException'}
+    java_exception_dict = {'UserNotFoundException':'org.ow2.bonita.facade.exception.UserNotFoundException',
+                           'ProcessNotFoundException':'org.ow2.bonita.facade.exception.ProcessNotFoundException',
+                           'GroupNotFoundException':'org.ow2.bonita.facade.exception.GroupNotFoundException'}
     exception_text = java_exception_dict.get(exception,exception)
 
     # Build XML body
@@ -297,26 +299,48 @@ def build_bonita_user_xml(uuid,password='',username=''):
 
     return soup.prettify()
 
-def build_bonita_group_xml(uuid):
-    """ Build XML for a Bonita Group information """
+def build_bonita_group_xml(uuid,name,description='',label='',parent=None, as_parent=False):
+    """ Build XML for a Bonita Group information 
+
+    :param parent: parent of this Group
+    :type parent: BonitaGroup
+    :param as_parent: State that the XML group must be provided as a parentGroup (default False)
+    :type as_parent: bool
+
+    """
     from BeautifulSoup import Tag, BeautifulStoneSoup
 
     # Build XML body
     soup=BeautifulStoneSoup()
-#    tag_user = Tag(soup,'user')
-#    tag_uuid = Tag(soup,'uuid')
-#    tag_password = Tag(soup,'password')
-#    tag_username = Tag(soup,'username')
 
-#    tag_uuid.setString(uuid)
-#    tag_password.setString(password)
-#    tag_username.setString(username)
-#    user_tags = [tag_uuid,tag_password,tag_username]
+    if as_parent:
+        tag_group = Tag(soup,'parentGroup',attrs={'class':'Group'})
+    else:
+        tag_group = Tag(soup,'group')
 
-#    soup.insert(0,tag_user)
-#    for tag in user_tags:
-#        tag_user.append(tag)
+    tag_uuid = Tag(soup,'uuid')
+    tag_description = Tag(soup,'description')
+    tag_name = Tag(soup,'name')
+    tag_label = Tag(soup,'label')
 
+    tag_uuid.setString(uuid)
+    tag_description.setString(description)
+    tag_name.setString(name)
+    tag_label.setString(label)
+    group_tags = [tag_uuid,tag_description,tag_name,tag_label]
+
+    for tag in group_tags:
+        tag_group.append(tag)
+
+    if parent:
+        if not isinstance(parent,BonitaGroup):
+            raise TypeError('parent must be a BonitaGroup instance')
+
+        # Build parent XML definition
+        parent_xml = build_bonita_group_xml(parent.uuid, parent.name, parent.description, parent.label,parent.parent, True)
+        tag_group.append(parent_xml)
+
+    soup.insert(0,tag_group)
     return soup.prettify()
 
 def build_bonita_process_definition_xml(uuid, name=None, version=None, label=None, description=None):
