@@ -12,7 +12,7 @@ setup(
     long_description='',
     license='BSD License',
     platforms='any',
-    install_requires=['BeautifulSoup', 'requests'],
+    install_requires=['requests','lxml','beautifulsoup4'],
     tests_require='nose',
     test_suite='nose.collector',
     classifiers=[
