@@ -54,15 +54,15 @@ class BonitaUser(BonitaObject):
         :return: BonitaUser
         
         """
-        soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
+        soup = BeautifulSoup(xml,'xml')
 
         # First thing first : instanciate a new BonitaUser with username and password
-        username = soup.user.username.text
-        password = soup.user.password.text
+        username = soup.user.username.string
+        password = soup.user.password.string
         user = BonitaUser(username,password)
 
         # Main properties now
-        user.uuid = soup.user.uuid.text
+        user.uuid = soup.user.uuid.string
         #TODO Must first check there is a firstname and a lastName in the soup
         #user.firstName = soup.user.firstName.text
         #user.lastName = soup.user.lastName.text
@@ -247,31 +247,37 @@ class BonitaGroup(BonitaObject):
         self.parent = parent
 
     @classmethod
-    def _instanciate_from_xml(cls, xml):
+    def _instanciate_from_xml(cls, xml, is_parent=False):
         """ Instanciate a BonitaGroup from XML
         
         :param xml: the XML description of a group
         :type xml: unicode
+        :param is_parent: State that the XML provided describe a parent Group (default False)
+        :type is_parent: bool
         :return: BonitaGroup
         
         """
         soup = BeautifulSoup(xml,'xml')
 
         # First thing first : instanciate a new BonitaGroup
-        description = soup.group.description.text
-        name = soup.group.find('name').text # name is a method of Tag soup.group, so we must use find()
-        label = soup.group.label.text
-        group = BonitaGroup(name,label,description)
+        group = soup.Group if not is_parent else soup.parentGroup
+        description = group.description.string
+        name = group.find('name').string # name is a method of Tag soup.group, so we must use find()
+        label = group.label.string
+
+        new_group = BonitaGroup(name,label,description)
 
         # Main properties now
-        group.uuid = soup.group.uuid.text
+        new_group.uuid = group.uuid.string
 
         # Other properties then
-        #TODO Add parent Group
-        #parent_hierarchy = soup.group.parentGroup
-        #group.parent = 
 
-        return group
+        # Parent hierarchy
+        if group.parentGroup is not None:
+            parent = group.parentGroup
+            new_group.parent = cls._instanciate_from_xml(unicode(parent),is_parent=True)
+
+        return new_group
 
 #<Group>
 #  <description>desc1</description>

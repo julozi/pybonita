@@ -18,10 +18,10 @@ class TestInstanciateFromXML(TestCase):
         group = BonitaGroup._instanciate_from_xml(xml)
 
         assert isinstance(group,BonitaGroup)
-        assert group.uuid == 'group uuid'
-        assert group.name == 'group name'
-        assert group.description == 'a desc'
-        assert group.label == 'a label'
+        assert group.uuid == u'group uuid'
+        assert group.name == u'group name'
+        assert group.description == u'a desc'
+        assert group.label == u'a label'
         assert group.parent is None
 
     def test_group_with_one_parent(self):
@@ -31,22 +31,23 @@ class TestInstanciateFromXML(TestCase):
         child_xml = build_bonita_group_xml('group uuid','group name',description='a desc',label='a label')
         
         # Add the parent XML to the Child
-        parent_soup = BeautifulStoneSoup(parent_xml)
-        child_soup = BeautifulStoneSoup(child_xml)
-        child_soup.append(parent_soup)
+        parent_soup = BeautifulSoup(parent_xml,'xml').parentGroup
+        child_soup = BeautifulSoup(child_xml,'xml')
+        child_soup.Group.append(parent_soup)
 
-        xml = child_soup.prettify()
+        xml = unicode(child_soup.Group)
 
         group = BonitaGroup._instanciate_from_xml(xml)
 
         assert isinstance(group,BonitaGroup)
-        assert group.uuid == 'group uuid'
-        assert group.name == 'group name'
-        assert group.description == 'a desc'
-        assert group.label == 'a label'
+        assert group.uuid == u'group uuid'
+        assert group.name == u'group name'
+        assert group.description == u'a desc'
+        assert group.label == u'a label'
 
         assert group.parent is not None
         assert isinstance(group.parent, BonitaGroup)
+        assert group.parent.uuid == u'parent uuid'
         assert group.parent.parent is None
 
     def test_group_with_several_parents(self):
@@ -58,37 +59,37 @@ class TestInstanciateFromXML(TestCase):
         child_xml = build_bonita_group_xml('group uuid','group name',description='a desc',label='a label')
         
         # Add the hierachy of parents to the Child
-        parentA_soup = BeautifulStoneSoup(parentA_xml)
-        parentB_soup = BeautifulStoneSoup(parentB_xml)
-        parentC_soup = BeautifulStoneSoup(parentC_xml)
+        parentA_soup = BeautifulSoup(parentA_xml,'xml').parentGroup
+        parentB_soup = BeautifulSoup(parentB_xml,'xml').parentGroup
+        parentC_soup = BeautifulSoup(parentC_xml,'xml').parentGroup
 
         parentB_soup.append(parentC_soup)
         parentA_soup.append(parentB_soup)
 
-        child_soup = BeautifulStoneSoup(child_xml)
-        child_soup.append(parentA_soup)
+        child_soup = BeautifulSoup(child_xml,'xml')
+        child_soup.Group.append(parentA_soup)
 
-        xml = child_soup.prettify()
+        xml = unicode(child_soup.Group)
 
         group = BonitaGroup._instanciate_from_xml(xml)
 
         assert isinstance(group,BonitaGroup)
-        assert group.uuid == 'group uuid'
-        assert group.name == 'group name'
-        assert group.description == 'a desc'
-        assert group.label == 'a label'
+        assert group.uuid == u'group uuid'
+        assert group.name == u'group name'
+        assert group.description == u'a desc'
+        assert group.label == u'a label'
 
         assert group.parent is not None
         assert isinstance(group.parent, BonitaGroup)
-        assert group.parent.uuid == 'parentA uuid'
+        assert group.parent.uuid == u'parentA uuid'
 
         assert group.parent.parent is not None
         assert isinstance(group.parent.parent, BonitaGroup)
-        assert group.parent.parent.uuid == 'parentB uuid'
+        assert group.parent.parent.uuid == u'parentB uuid'
 
         assert group.parent.parent.parent is not None
         assert isinstance(group.parent.parent.parent, BonitaGroup)
-        assert group.parent.parent.parent.uuid == 'parentC uuid'
+        assert group.parent.parent.parent.uuid == u'parentC uuid'
 
 
 class TestGetGroup(TestWithMockedServer):

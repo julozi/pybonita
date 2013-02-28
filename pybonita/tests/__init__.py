@@ -1,5 +1,5 @@
 #-*- coding: utf-8 -*-
-
+from bs4 import BeautifulSoup, Tag
 from unittest import TestCase
 
 __all__ = ['TestWithBonitaServer','TestWithMockedServer',
@@ -49,14 +49,13 @@ class BonitaMockedServerImpl(object):
 
         """
         import re
-        from BeautifulSoup import BeautifulStoneSoup
         from requests import codes
         from pybonita.exception import BonitaHTTPError
 
         (status, content_type, data) = self.__class__.extract_response(url,'POST')
 
         if status != str(codes.ok):
-            soup = BeautifulStoneSoup(data)
+            soup = BeautifulSoup(data,'xml')
             if soup == None:
                 raise Exception('data : %s[%s] and can\'t build soup with that' % (str(data),type(data)))
             soup_exception = soup.find(name=re.compile("exception"))
@@ -252,8 +251,6 @@ def set_response_list(cls,response_list):
         response_list.add_or_augment_response_list(url,method,status,type,message)
 
 def build_dumb_bonita_error_body(exception='',code='',message=''):
-    from BeautifulSoup import Tag, BeautifulStoneSoup
-
     # Add your own Bonita java Exception in this dict to make your call shorter
     # So you can call with exception='UserNotFoundException'
     # rather than exception = 'org.ow2.bonita.facade.exception.UserNotFoundException'
@@ -263,41 +260,38 @@ def build_dumb_bonita_error_body(exception='',code='',message=''):
     exception_text = java_exception_dict.get(exception,exception)
 
     # Build XML body
-    soup=BeautifulStoneSoup()
-    tag_exception = Tag(soup,exception_text)
-    tag_code = Tag(soup,'errorCode')
-    tag_message = Tag(soup,'detailMessage')
+    soup = BeautifulSoup('','xml')
+    tag_exception = soup.new_tag(exception_text)
+    tag_code = soup.new_tag('errorCode')
+    tag_message = soup.new_tag('detailMessage')
 
-    tag_code.setString(code)
-    tag_message.setString(message)
+    tag_code.string = code
+    tag_message.string = message
 
     soup.insert(0,tag_exception)
     tag_exception.insert(0,tag_code)
     tag_exception.insert(1,tag_message)
 
-    return soup.prettify()
+    return unicode(soup)
 
 def build_bonita_user_xml(uuid,password='',username=''):
     """ Build XML for a Bonita User information """
-    from BeautifulSoup import Tag, BeautifulStoneSoup
-
     # Build XML body
-    soup=BeautifulStoneSoup()
-    tag_user = Tag(soup,'user')
-    tag_uuid = Tag(soup,'uuid')
-    tag_password = Tag(soup,'password')
-    tag_username = Tag(soup,'username')
+    soup = BeautifulSoup('','xml')
+    tag_user = soup.new_tag('user')
+    tag_uuid = soup.new_tag('uuid')
+    tag_password = soup.new_tag('password')
+    tag_username = soup.new_tag('username')
 
-    tag_uuid.setString(uuid)
-    tag_password.setString(password)
-    tag_username.setString(username)
+    tag_uuid.string = uuid
+    tag_password.string = password
+    tag_username.string = username
     user_tags = [tag_uuid,tag_password,tag_username]
 
-    soup.insert(0,tag_user)
     for tag in user_tags:
         tag_user.append(tag)
 
-    return soup.prettify()
+    return unicode(tag_user)
 
 def build_bonita_group_xml(uuid,name,description='',label='',parent=None, as_parent=False):
     """ Build XML for a Bonita Group information 
@@ -308,25 +302,24 @@ def build_bonita_group_xml(uuid,name,description='',label='',parent=None, as_par
     :type as_parent: bool
 
     """
-    from BeautifulSoup import Tag, BeautifulStoneSoup
-
     # Build XML body
-    soup=BeautifulStoneSoup()
+    soup = BeautifulSoup('','xml')
 
     if as_parent:
-        tag_group = Tag(soup,'parentGroup',attrs={'class':'Group'})
+        tag_group = soup.new_tag('parentGroup')
+        tag_group.attrs['class']='Group'
     else:
-        tag_group = Tag(soup,'group')
+        tag_group = soup.new_tag('Group')
 
-    tag_uuid = Tag(soup,'uuid')
-    tag_description = Tag(soup,'description')
-    tag_name = Tag(soup,'name')
-    tag_label = Tag(soup,'label')
+    tag_uuid =  soup.new_tag('uuid')
+    tag_description =  soup.new_tag('description')
+    tag_name =  soup.new_tag('name')
+    tag_label =  soup.new_tag('label')
 
-    tag_uuid.setString(uuid)
-    tag_description.setString(description)
-    tag_name.setString(name)
-    tag_label.setString(label)
+    tag_uuid.string = uuid
+    tag_description.string = description
+    tag_name.string = name
+    tag_label.string = label
     group_tags = [tag_uuid,tag_description,tag_name,tag_label]
 
     for tag in group_tags:
@@ -340,38 +333,34 @@ def build_bonita_group_xml(uuid,name,description='',label='',parent=None, as_par
         parent_xml = build_bonita_group_xml(parent.uuid, parent.name, parent.description, parent.label,parent.parent, True)
         tag_group.append(parent_xml)
 
-    soup.insert(0,tag_group)
-    return soup.prettify()
+    return unicode(tag_group)
 
 def build_bonita_process_definition_xml(uuid, name=None, version=None, label=None, description=None):
 
-    from BeautifulSoup import Tag, BeautifulStoneSoup
+    soup = BeautifulSoup('','xml')
 
-    soup = BeautifulStoneSoup()
+    tag_process = soup.new_tag("ProcessDefinition")
 
-    tag_process = Tag(soup, "ProcessDefinition")
+    tag_description = soup.new_tag("description")
+    tag_description.string = description if description != None else "%s description" % uuid
 
-    tag_description = Tag(soup, "description")
-    tag_description.setString(description if description != None else "%s description" % uuid)
+    tag_name = soup.new_tag("name")
+    tag_name.string = name if name != None else uuid.split("--")[0]
 
-    tag_name = Tag(soup, "name")
-    tag_name.setString(name if name != None else uuid.split("--")[0])
+    tag_label = soup.new_tag("label")
+    tag_label.string = label if label != None else uuid.split("--")[0]
 
-    tag_label = Tag(soup, "label")
-    tag_label.setString(label if label != None else uuid.split("--")[0])
-
-    tag_uuid = Tag(soup, "uuid")
-    tag_value = Tag(soup, "value")
-    tag_value.setString(uuid)
+    tag_uuid = soup.new_tag("uuid")
+    tag_value = soup.new_tag("value")
+    tag_value.string = uuid
     tag_uuid.append(tag_value)
 
-    tag_version = Tag(soup, "version")
-    tag_version.setString(version if version != None else uuid.split("--")[1])
+    tag_version = soup.new_tag("version")
+    tag_version.string = version if version != None else uuid.split("--")[1]
 
     process_tags = [tag_description, tag_name, tag_label, tag_uuid, tag_version]
 
-    soup.insert(0, tag_process)
     for tag in process_tags:
         tag_process.append(tag)
 
-    return soup.prettify()
+    return unicode(tag_process)

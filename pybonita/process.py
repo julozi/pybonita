@@ -6,7 +6,7 @@ import base64
 from datetime import datetime
 from xml.dom.minidom import parseString
 
-from BeautifulSoup import BeautifulStoneSoup
+from bs4 import BeautifulSoup
 
 from pybonita import logger
 from pybonita.exception import BonitaHTTPError
@@ -57,10 +57,10 @@ class BonitaProcess(BonitaObject):
 
         xml = BonitaServer.get_instance().sendRESTRequest(url=url)
 
-        soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
+        soup = BeautifulSoup(xml.encode('iso-8859-1'),'xml')
 
         processes = []
-        for definition in soup.set.findAll('processdefinition'):
+        for definition in soup.set.findAll('ProcessDefinition'):
             processes.append(BonitaProcess._instanciate_from_xml(unicode(definition)))
 
         return processes
@@ -69,13 +69,13 @@ class BonitaProcess(BonitaObject):
     def _instanciate_from_xml(cls, xml):
         """ Instanciate a BonitaProcess object from its xml definition """
 
-        soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
+        soup = BeautifulSoup(xml.encode('iso-8859-1'),'xml')
 
-        uuid = soup.processdefinition.uuid.text
+        uuid = soup.ProcessDefinition.uuid.string
         process = BonitaProcess(uuid)
 
         process._name = soup.find("name").text
-        process._version = soup.processdefinition.version.text
+        process._version = soup.ProcessDefinition.version.text
 
         return process
 
@@ -99,7 +99,7 @@ class BonitaProcess(BonitaObject):
 
         xml = BonitaServer.get_instance().sendRESTRequest(url=url)
 
-        soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
+        soup = BeautifulSoup(xml.encode('iso-8859-1'),'xml')
 
         cases = []
         for instance in soup.set.findAll('processinstance'):
@@ -146,7 +146,7 @@ class BonitaCase(BonitaObject):
     @classmethod
     def _instanciate_from_xml(cls, xml):
         """ Instanciate a BonitaCase object from its xml definition """
-        soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
+        soup = BeautifulSoup(xml.encode('iso-8859-1'),'xml')
         process = BonitaProcess(soup.processinstance.processuuid.text)
         uuid = soup.processinstance.instanceuuid.text
 
@@ -232,7 +232,7 @@ class BonitaCase(BonitaObject):
             url = "/queryRuntimeAPI/getProcessInstance/%s" % self.uuid
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
 
-        soup = BeautifulStoneSoup(xml.encode('iso-8859-1'))
+        soup = BeautifulSoup(xml.encode('iso-8859-1'),'xml')
 
         variables = {}
         for variable in soup.processinstance.clientvariables.findAll('entry'):

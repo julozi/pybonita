@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from BeautifulSoup import BeautifulStoneSoup
+from bs4 import BeautifulSoup
 
 from pybonita.server import BonitaServer
 
@@ -27,7 +27,7 @@ class BonitaObject(object):
         xml = BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
 
         # Extract UUID of newly created object
-        soup = BeautifulStoneSoup(xml)
+        soup = BeautifulSoup(xml,'xml')
         instances = soup.findAll("uuid")
         if len(instances) != 1:
             raise Exception #fixme: raise clear Exception

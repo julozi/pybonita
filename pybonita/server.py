@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from BeautifulSoup import BeautifulStoneSoup
+from bs4 import BeautifulSoup
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -72,7 +72,7 @@ class BonitaServer:
                 # - <detailMessage></detailMessage> : message describing the problem
                 if response.status_code == 500:
                     import re
-                    soup = BeautifulStoneSoup(response.text)
+                    soup = BeautifulSoup(response.text,'xml')
                     bonita_exception = soup.find(name=re.compile("exception")).name
                     message = soup.detailmessage.text
                     code = int(soup.errorCode.text) if soup.errorCode != None else 500
