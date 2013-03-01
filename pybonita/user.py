@@ -170,6 +170,9 @@ class BonitaUser(BonitaObject):
         except BonitaHTTPError as err:
             if 'UserNotFoundException'.lower() in err.bonita_exception.lower():
                 return None
+            else:
+                raise
+
 
         user = cls._instanciate_from_xml(xml)
 
@@ -190,6 +193,9 @@ class BonitaUser(BonitaObject):
         except BonitaHTTPError as err:
             if 'UserNotFoundException'.lower() in err.bonita_exception.lower():
                 return None
+            else:
+                raise
+
 
         user = cls._instanciate_from_xml(xml)
 
@@ -309,18 +315,23 @@ class BonitaGroup(BonitaObject):
         :type path: str
 
         """
-        url = '/identityAPI/getGroupUsingPath/'+path
+        url = '/identityAPI/getGroupUsingPath'
 
+        # remove heading /
+        if path[0] == '/':
+            path = path[1:]
         data = dict()
         data['hierarchy'] = []
         for part_path in path.split('/'):
             data['hierarchy'].append(part_path)
 
         try:
-            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url,data=data)
         except BonitaHTTPError as err:
             if 'GroupNotFoundException'.lower() in err.bonita_exception.lower():
                 return None
+            else:
+                raise
 
         group = cls._instanciate_from_xml(xml)
 
@@ -341,6 +352,8 @@ class BonitaGroup(BonitaObject):
         except BonitaHTTPError as err:
             if 'GroupNotFoundException'.lower() in err.bonita_exception.lower():
                 return None
+            else:
+                raise
 
         group = cls._instanciate_from_xml(xml)
 

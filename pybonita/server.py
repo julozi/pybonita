@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, UnicodeDammit
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -39,6 +39,7 @@ class BonitaServer:
             self._port = None
             self._login = None
             self._password = None
+            self._charsets= []
             self._ready = False
 
         def sendRESTRequest(self, url, user=None, data=dict()):
@@ -81,9 +82,14 @@ class BonitaServer:
                     else:
                         raise UnexpectedResponseError
 
-            print response.text
+            # Convert response to unicode, using UnicodeDammit
+            # Try to extract content-type from XML
+            # No way ! Bonita does not return even a proper content-type, only text/*
+            # Try to guess what is the charset
+            dammit = UnicodeDammit(response.text,self.charsets)
+            unicode_response = dammit.unicode_markup
 
-            return response.text
+            return unicode_response
 
         def _get_host(self):
             return self._host
@@ -146,7 +152,7 @@ class BonitaServer:
             return cls._instance
 
     @classmethod
-    def use(cls, host, port, login, password):
+    def use(cls, host, port, login, password,charsets=[]):
         """ Set the connexion params to the BonitaServer
 
         Returns the unique BonitaServer instance
@@ -159,6 +165,8 @@ class BonitaServer:
         :type login: str
         :param password: Bonita REST request credential password
         :type password: str
+        :param charsets: List of charsets the Bonita Server could use for answering
+        :type charsets: list of str
 
         """
 
@@ -167,6 +175,7 @@ class BonitaServer:
         server.port = port
         server.login = login
         server.password = password
+        server.charsets = charsets
         server._ready = True
 
         return server

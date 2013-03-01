@@ -105,17 +105,31 @@ class TestGetGroupByPath(TestWithMockedServer):
     def tearDownClass(cls):
         pass
 
-#    def test_unknown_group(self):
-#        """ Try to retrieve group by path but no group matching """
+    def test_unknown_group(self):
+        """ Try to retrieve group by path but no group matching """
+        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
+        url = '/identityAPI/getGroupUsingPath'
+        code = 500
+        xml = build_dumb_bonita_error_body('GroupNotFoundException',message='can\'t find Group: unknown')
+        BonitaServer.set_response_list([[url,code,xml]])
+
+        group = BonitaGroup.get_group_by_path('/something/unknown')
+
+        assert group == None
+
+#    def test_known_group(self):
+#        """ Retrieve a group using the path """
+#        # Setup the response for MockServer
 #        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
 #        url = '/identityAPI/getGroupUsingPath'
-#        code = 500
-#        xml = build_dumb_bonita_error_body('UserNotFoundException',message='can\'t find User: unknown')
+#        code = 200
+#        xml = build_bonita_group_xml(uuid='996633',name='mygroup')
 #        BonitaServer.set_response_list([[url,code,xml]])
 
-#        group = BonitaGroup.get_group_by_path('unknown')
+#        group = BonitaGroup.get_group_by_uuid('996633')
 
-#        assert group == None
+#        assert isinstance(group,BonitaGroup)
+#        assert group.uuid == '996633'
 
 #    def test_known_group(self):
 #        """ Retrieve a group using the path """
