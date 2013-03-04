@@ -366,7 +366,7 @@ On all subsequent calls, the already created instance is returned.</p>
 
 <dl class="classmethod">
 <dt id="pybonita.server.BonitaServer.use">
-<em class="property">classmethod </em><tt class="descname">use</tt><big>(</big><em>host</em>, <em>port</em>, <em>login</em>, <em>password</em><big>)</big><a class="reference internal" href="modules/pybonita/server.html#BonitaServer.use"><span class="viewcode-link">[source]</span></a></dt>
+<em class="property">classmethod </em><tt class="descname">use</tt><big>(</big><em>host</em>, <em>port</em>, <em>login</em>, <em>password</em>, <em>charsets=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="modules/pybonita/server.html#BonitaServer.use"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Set the connexion params to the BonitaServer</p>
 <p>Returns the unique BonitaServer instance</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -378,6 +378,7 @@ On all subsequent calls, the already created instance is returned.</p>
 <li><strong>port</strong> (<em>int</em>) &#8211; Bonita REST API server port</li>
 <li><strong>login</strong> (<em>str</em>) &#8211; Bonita REST request credential login</li>
 <li><strong>password</strong> (<em>str</em>) &#8211; Bonita REST request credential password</li>
+<li><strong>charsets</strong> (<em>list of str</em>) &#8211; List of charsets the Bonita Server could use for answering</li>
 </ul>
 </td>
 </tr>

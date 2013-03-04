@@ -192,7 +192,7 @@ URL_ROOT:'',
 <div class="section" id="testing-before-developping">
 <h2>Testing before developping</h2>
 <p>In order to test the calling requests, and the provided response, you could use the <a class="reference external" href="https://github.com/jkbr/httpie">HTTPie</a> tool and command like this one ::</p>
-<div class="highlight-python"><pre>http --auth restuser:restbpm POST http://serv-devbpm-integration.igbmc.u-strasbg.fr/bonita-server-rest/API/identityAPI/getAllUsers options="user:john" content-type:application/x-www-form-urlencoded</pre>
+<div class="highlight-python"><pre>http --form --auth restuser:restbpm POST http://serv-devbpm-integration.igbmc.u-strasbg.fr/bonita-server-rest/API/identityAPI/getAllUsers options="user:john" content-type:application/x-www-form-urlencoded</pre>
 </div>
 <p>Adding &#8211;verbose &#8211;stream &#8211;traceback options at start could help you</p>
 </div>
