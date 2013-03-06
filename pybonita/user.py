@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from . import logger, BonitaServer
 from .exception import BonitaHTTPError
 from .object import BonitaObject
-from .utils import dictToMapString
+from .utils import dictToMapString, set_if_available
 
 __all__ = ['BonitaUser','BonitaGroup','BonitaRole','BonitaMembership']
 
@@ -277,6 +277,7 @@ class BonitaGroup(BonitaObject):
         new_group.uuid = group.uuid.string
 
         # Other properties then
+        set_if_available(new_group,group,['dbid'])
 
         # Parent hierarchy
         if group.parentGroup is not None:
@@ -284,28 +285,6 @@ class BonitaGroup(BonitaObject):
             new_group.parent = cls._instanciate_from_xml(unicode(parent),is_parent=True)
 
         return new_group
-
-#<Group>
-#  <description>desc1</description>
-#  <dbid>0</dbid>
-#  <uuid>dc947b56-7f46-4aa6-9f14-d2c904e2c79c</uuid>
-#  <name>testtony</name>
-#  <label>label1</label>
-#  <parentGroup class="Group">
-#    <description>Service de genotypage</description>
-#    <dbid>0</dbid>
-#    <uuid>fc13ad9b-1666-47e4-9ec0-d18607cd35ad</uuid>
-#    <name>genotypage</name>
-#    <label>Genotypage</label>
-#    <parentGroup class="Group">
-#      <description>The default group</description>
-#      <dbid>0</dbid>
-#      <uuid>c18bb42b-2fee-4a08-9ab6-fe61d3be726e</uuid>
-#      <name>platform</name>
-#      <label>Platform</label>
-#    </parentGroup>
-#  </parentGroup>
-#</Group>
 
     @classmethod
     def get_by_path(cls,path):

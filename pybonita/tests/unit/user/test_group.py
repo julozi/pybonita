@@ -27,7 +27,7 @@ class TestInstanciateFromXML(TestCase):
     def test_group_with_one_parent(self):
         """ Instanciate a Bonita group with one parent """
         # Build up parent and child XML
-        parent_xml = build_bonita_group_xml('parent uuid','parent name','parent description','parent label',None, True)
+        parent_xml = build_bonita_group_xml('parent uuid','parent name','parent description','parent label','12',None, True)
         child_xml = build_bonita_group_xml('group uuid','group name',description='a desc',label='a label')
         
         # Add the parent XML to the Child
@@ -53,9 +53,9 @@ class TestInstanciateFromXML(TestCase):
     def test_group_with_several_parents(self):
         """ Instanciate a Boinita group with a hierarchy of parents """
         # Build up parents and child XML
-        parentA_xml = build_bonita_group_xml('parentA uuid','parentA name','parentA description','parentA label',None, True)
-        parentB_xml = build_bonita_group_xml('parentB uuid','parentB name','parentB description','parentB label',None, True)
-        parentC_xml = build_bonita_group_xml('parentC uuid','parentC name','parentC description','parentC label',None, True)
+        parentA_xml = build_bonita_group_xml('parentA uuid','parentA name','parentA description','parentA label','vieux-1',None, True)
+        parentB_xml = build_bonita_group_xml('parentB uuid','parentB name','parentB description','parentB label','vieux-2',None, True)
+        parentC_xml = build_bonita_group_xml('parentC uuid','parentC name','parentC description','parentC label','vieux-3',None, True)
         child_xml = build_bonita_group_xml('group uuid','group name',description='a desc',label='a label')
         
         # Add the hierachy of parents to the Child

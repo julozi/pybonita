@@ -296,9 +296,19 @@ def build_bonita_user_xml(uuid,password='',username=''):
 
     return unicode(tag_user)
 
-def build_bonita_group_xml(uuid,name,description='',label='',parent=None, as_parent=False):
+def build_bonita_group_xml(uuid, name, description='', label='', dbid='', parent=None, as_parent=False):
     """ Build XML for a Bonita Group information 
 
+    :param uuid:
+    :type uuid:
+    :param name:
+    :type name:
+    :param description:
+    :type description:
+    :param label:
+    :type label:
+    :param dbid:
+    :type dbid:
     :param parent: parent of this Group, rather as a BonitaGroup or by XML
     :type parent: BonitaGroup ou unicode
     :param as_parent: State that the XML group must be provided as a parentGroup (default False)
@@ -314,16 +324,18 @@ def build_bonita_group_xml(uuid,name,description='',label='',parent=None, as_par
     else:
         tag_group = soup.new_tag('Group')
 
-    tag_uuid =  soup.new_tag('uuid')
-    tag_description =  soup.new_tag('description')
-    tag_name =  soup.new_tag('name')
-    tag_label =  soup.new_tag('label')
+    tag_uuid = soup.new_tag('uuid')
+    tag_description = soup.new_tag('description')
+    tag_name =soup.new_tag('name')
+    tag_label = soup.new_tag('label')
+    tag_dbid = soup.new_tag('dbid')
 
     tag_uuid.string = uuid
     tag_description.string = description
     tag_name.string = name
     tag_label.string = label
-    group_tags = [tag_uuid,tag_description,tag_name,tag_label]
+    tag_dbid.string = dbid
+    group_tags = [tag_uuid,tag_description,tag_name,tag_label,tag_dbid]
 
     for tag in group_tags:
         tag_group.append(tag)
