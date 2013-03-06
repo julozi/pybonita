@@ -156,7 +156,7 @@ class BonitaUser(BonitaObject):
         pass
     
     @classmethod
-    def get_user_by_username(cls,username):
+    def get_by_username(cls,username):
         """ Retrieve a User with the username
 
         :param username: the username of the user to retrieve
@@ -179,7 +179,7 @@ class BonitaUser(BonitaObject):
         return user
 
     @classmethod
-    def get_user_by_uuid(cls,uuid):
+    def get_by_uuid(cls,uuid):
         """ Retrieve a User with the UUID 
 
         :param uuid: the UUID of the user to retrieve
@@ -202,7 +202,7 @@ class BonitaUser(BonitaObject):
         return user
 
     @classmethod
-    def get_user(cls,**kwargs):
+    def get(cls,**kwargs):
         """ Retrieve a User with given parameter
 
         Parameter can be any of :
@@ -214,9 +214,9 @@ class BonitaUser(BonitaObject):
 
         """
         if 'username' in kwargs:
-            return cls.get_user_by_username(username=kwargs['username'])
+            return cls.get_by_username(username=kwargs['username'])
         if 'uuid' in kwargs:
-            return cls.get_user_by_uuid(uuid=kwargs['uuid'])
+            return cls.get_by_uuid(uuid=kwargs['uuid'])
         
         raise TypeError('called get_user with unknown param : %s' % (kwargs.keys()))
     
@@ -308,7 +308,7 @@ class BonitaGroup(BonitaObject):
 #</Group>
 
     @classmethod
-    def get_group_by_path(cls,path):
+    def get_by_path(cls,path):
         """ Retrieve a Group with the path
 
         :param path: the path of the group to retrieve
@@ -338,7 +338,7 @@ class BonitaGroup(BonitaObject):
         return group
 
     @classmethod
-    def get_group_by_uuid(cls,uuid):
+    def get_by_uuid(cls,uuid):
         """ Retrieve a Group with the UUID 
 
         :param uuid: the UUID of the group to retrieve
@@ -360,7 +360,7 @@ class BonitaGroup(BonitaObject):
         return group
 
     @classmethod
-    def get_group(cls,**kwargs):
+    def get(cls,**kwargs):
         """  Retrieve a Group with given parameter
 
         Parameter can be any of :
@@ -372,19 +372,19 @@ class BonitaGroup(BonitaObject):
 
         """
         if 'path' in kwargs:
-            return cls.get_group_by_path(path=kwargs['path'])
+            return cls.get_by_path(path=kwargs['path'])
         if 'uuid' in kwargs:
-            return cls.get_group_by_uuid(uuid=kwargs['uuid'])
+            return cls.get_by_uuid(uuid=kwargs['uuid'])
         
         raise TypeError('called get_group with unknown param : %s' % (kwargs.keys()))
 
     @classmethod
-    def get_default_root_group(cls):
+    def get_default_root(cls):
         """ Retrieve BonitaGroup which is the root, currently the /platform group.
 
         :return: BonitaGroup for /platform
         """
-        return cls.get_group_by_path('/platform')
+        return cls.get_by_path('/platform')
 
 
 class BonitaRole(BonitaObject):

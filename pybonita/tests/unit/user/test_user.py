@@ -20,7 +20,7 @@ class TestGetUser(TestWithMockedServer):
     @raises(TypeError)
     def test_unknown_param(self):
         """ Try to retrieve user but gives an unknown param """
-        BonitaUser.get_user(unknown_param='32')
+        BonitaUser.get(unknown_param='32')
     
     def test_not_found_user_by_uuid(self):
         """ Try to retrieve user but nothing found with given key """
@@ -31,7 +31,7 @@ class TestGetUser(TestWithMockedServer):
         xml = build_dumb_bonita_error_body('UserNotFoundException',message='can\'t find User: not found uuid')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        user = BonitaUser.get_user(uuid='not found uuid')
+        user = BonitaUser.get(uuid='not found uuid')
 
         assert user == None
     
@@ -44,7 +44,7 @@ class TestGetUser(TestWithMockedServer):
         xml = build_bonita_user_xml(uuid='12345678',password='',username='username')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        user = BonitaUser.get_user(uuid='12345678')
+        user = BonitaUser.get(uuid='12345678')
         
         assert isinstance(user,BonitaUser)
         assert user.uuid == '12345678'
@@ -58,7 +58,7 @@ class TestGetUser(TestWithMockedServer):
         xml = build_bonita_user_xml(uuid='996633',password='',username='myuser')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        user = BonitaUser.get_user(username='myuser')
+        user = BonitaUser.get(username='myuser')
         
         assert isinstance(user,BonitaUser)
         assert user.username == 'myuser'
@@ -82,7 +82,7 @@ class TestGetUserByUsername(TestWithMockedServer):
         xml = build_dumb_bonita_error_body('UserNotFoundException',message='can\'t find User: unknown')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        user = BonitaUser.get_user_by_username('unknown')
+        user = BonitaUser.get_by_username('unknown')
 
         assert user == None
 
@@ -95,7 +95,7 @@ class TestGetUserByUsername(TestWithMockedServer):
         xml = build_bonita_user_xml(uuid='996633',password='',username='known')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        user = BonitaUser.get_user_by_username('known')
+        user = BonitaUser.get_by_username('known')
 
         assert isinstance(user,BonitaUser)
         assert user.username == 'known'
@@ -119,7 +119,7 @@ class TestGetUserByUUID(TestWithMockedServer):
         xml = build_dumb_bonita_error_body('UserNotFoundException',message='can\'t find User: unknown')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        user = BonitaUser.get_user_by_uuid('unknown')
+        user = BonitaUser.get_by_uuid('unknown')
 
         assert user == None
 
@@ -132,7 +132,7 @@ class TestGetUserByUUID(TestWithMockedServer):
         xml = build_bonita_user_xml(uuid='996633',password='',username='username')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        user = BonitaUser.get_user_by_uuid('996633')
+        user = BonitaUser.get_by_uuid('996633')
 
         assert isinstance(user,BonitaUser)
         assert user.uuid == '996633'

@@ -93,7 +93,61 @@ class TestInstanciateFromXML(TestCase):
 
 
 class TestGetGroup(TestWithMockedServer):
-    pass
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    @raises(TypeError)
+    def test_unknown_param(self):
+        """ Try to retrieve group but gives an unknown param """
+        BonitaGroup.get(unknown_param='32')
+    
+    def test_not_found_group_by_uuid(self):
+        """ Try to retrieve group but nothing found with given key """
+        # Setup the response for MockServer
+        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
+        url = '/identityAPI/getGroupByUUID'
+        code = 500
+        xml = build_dumb_bonita_error_body('GroupNotFoundException',message='can\'t find Group: unknown')
+        BonitaServer.set_response_list([[url,code,xml]])
+
+        group = BonitaGroup.get(uuid='unknown')
+
+        assert group == None
+    
+    def test_get_group_by_uuid(self):
+        """ Retrieve a group with UUID """
+        # Setup the response for MockServer
+        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
+        url = '/identityAPI/getGroupByUUID'
+        code = 200
+        xml = build_bonita_group_xml(uuid='996633',name='mygroup')
+        BonitaServer.set_response_list([[url,code,xml]])
+
+        group = BonitaGroup.get(uuid='996633')
+
+        assert isinstance(group,BonitaGroup)
+        assert group.uuid == '996633'
+
+    def test_get_group_by_path(self):
+        """ Retrieve a group with path """
+        # Setup the response for MockServer
+        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
+        url = '/identityAPI/getGroupUsingPath'
+        code = 200
+        xml = build_bonita_group_xml(uuid='996633',name='mygroup')
+        BonitaServer.set_response_list([[url,code,xml]])
+
+        group = BonitaGroup.get(path='/mygroup')
+
+        assert isinstance(group,BonitaGroup)
+        assert group.name == 'mygroup'
+
 
 class TestGetGroupByPath(TestWithMockedServer):
 
@@ -113,7 +167,7 @@ class TestGetGroupByPath(TestWithMockedServer):
         xml = build_dumb_bonita_error_body('GroupNotFoundException',message='can\'t find Group: unknown')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        group = BonitaGroup.get_group_by_path('/something/unknown')
+        group = BonitaGroup.get_by_path('/something/unknown')
 
         assert group == None
 
@@ -123,10 +177,10 @@ class TestGetGroupByPath(TestWithMockedServer):
         BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
         url = '/identityAPI/getGroupUsingPath'
         code = 200
-        xml = build_bonita_group_xml(uuid='996633',name='mygroup')
+        xml = build_bonita_group_xml(uuid='996633',name='something')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        group = BonitaGroup.get_group_by_path('/something')
+        group = BonitaGroup.get_by_path('/something')
 
         assert isinstance(group,BonitaGroup)
         assert group.uuid == '996633'
@@ -143,7 +197,7 @@ class TestGetGroupByPath(TestWithMockedServer):
         xml = build_bonita_group_xml(uuid='996633',name='child-group',parent=father_xml)
         BonitaServer.set_response_list([[url,code,xml]])
 
-        group = BonitaGroup.get_group_by_path('/gran-father/father/child-group')
+        group = BonitaGroup.get_by_path('/gran-father/father/child-group')
 
         assert isinstance(group,BonitaGroup)
         assert group.uuid == '996633'
@@ -171,7 +225,7 @@ class TestGetGroupByUUID(TestWithMockedServer):
         xml = build_dumb_bonita_error_body('GroupNotFoundException',message='can\'t find Group: unknown')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        group = BonitaGroup.get_group_by_uuid('unknown')
+        group = BonitaGroup.get_by_uuid('unknown')
 
         assert group == None
 
@@ -184,7 +238,7 @@ class TestGetGroupByUUID(TestWithMockedServer):
         xml = build_bonita_group_xml(uuid='996633',name='mygroup')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        group = BonitaGroup.get_group_by_uuid('996633')
+        group = BonitaGroup.get_by_uuid('996633')
 
         assert isinstance(group,BonitaGroup)
         assert group.uuid == '996633'
@@ -208,7 +262,7 @@ class TestGetDefaultRootGroup(TestWithMockedServer):
         xml = build_bonita_group_xml(uuid='996633',name='platform')
         BonitaServer.set_response_list([[url,code,xml]])
 
-        group = BonitaGroup.get_default_root_group()
+        group = BonitaGroup.get_default_root()
 
         assert isinstance(group,BonitaGroup)
         assert group.name == u'platform'
