@@ -4,7 +4,7 @@ from unittest import TestCase
 
 __all__ = ['TestWithBonitaServer','TestWithMockedServer',
     'build_dumb_bonita_error_body','build_bonita_user_xml',
-    'build_bonita_group_xml']
+    'build_bonita_group_xml','build_bonita_role_xml']
 
 
 class TestWithBonitaServer(TestCase):
@@ -259,7 +259,8 @@ def build_dumb_bonita_error_body(exception='',code='',message=''):
     # rather than exception = 'org.ow2.bonita.facade.exception.UserNotFoundException'
     java_exception_dict = {'UserNotFoundException':'org.ow2.bonita.facade.exception.UserNotFoundException',
                            'ProcessNotFoundException':'org.ow2.bonita.facade.exception.ProcessNotFoundException',
-                           'GroupNotFoundException':'org.ow2.bonita.facade.exception.GroupNotFoundException'}
+                           'GroupNotFoundException':'org.ow2.bonita.facade.exception.GroupNotFoundException',
+                           'RoleNotFoundException':'org.ow2.bonita.facade.exception.RoleNotFoundException'}
     exception_text = java_exception_dict.get(exception,exception)
 
     # Build XML body
@@ -382,3 +383,28 @@ def build_bonita_process_definition_xml(uuid, name=None, version=None, label=Non
         tag_process.append(tag)
 
     return unicode(tag_process)
+
+def build_bonita_role_xml(uuid,name,description='',label='',dbid=''):
+    """ Build XML for a Bonita Role information """
+    # Build XML body
+    soup = BeautifulSoup('','xml')
+
+    tag_role = soup.new_tag('Role')
+    tag_uuid = soup.new_tag('uuid')
+    tag_name = soup.new_tag('name')
+    tag_description = soup.new_tag('description')
+    tag_label = soup.new_tag('label')
+    tag_dbid = soup.new_tag('dbid')
+
+    tag_uuid.string = uuid
+    tag_name.string = name
+    tag_description.string = description
+    tag_label.string = label
+    tag_dbid.string = dbid
+
+    role_tags = [tag_uuid,tag_name,tag_description,tag_label,tag_dbid]
+
+    for tag in role_tags:
+        tag_role.append(tag)
+
+    return unicode(tag_role)

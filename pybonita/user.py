@@ -238,7 +238,7 @@ class BonitaGroup(BonitaObject):
         :param label: Label of the group
         :type label: str
         :param description: Description of the group
-        :type username: str
+        :type description: str
         :param parent: Parent of the group, default to root ('/')
         :type parent: BonitaGroup
         
@@ -355,7 +355,7 @@ class BonitaGroup(BonitaObject):
         if 'uuid' in kwargs:
             return cls.get_by_uuid(uuid=kwargs['uuid'])
         
-        raise TypeError('called get_group with unknown param : %s' % (kwargs.keys()))
+        raise TypeError('called get with unknown param : %s' % (kwargs.keys()))
 
     @classmethod
     def get_default_root(cls):
@@ -371,35 +371,125 @@ class BonitaRole(BonitaObject):
     
     """
     
-    def __init__(self,name):
+    def __init__(self,name,label,description):
+        """ Build up a new BonitaRole
+        
+        :param name: name of the role
+        :type name: str or unicode
+        :param label: label of the role
+        :type label: str or unicode
+        :param description: description of the role
+        :type description: str or unicode
+        
+        """
         self.name = name
-    
-    def _generate_save_url(self,variables):
-        url = "/identityAPI/addRole/"+self.name
-        data = None
+        self.label = label
+        self.description = description
+
+    @classmethod
+    def _instanciate_from_xml(cls, xml):
+        """ Instanciate a BonitaRole from XML
         
-        return (url,data)
-    
-    def _generate_delete_url(self,variables):
-        url = "/identityAPI/removeRole/"+self.name
-        data = None
+        :param xml: the XML description of a rpme
+        :type xml: unicode
+        :return: BonitaRole
         
-        return (url,data)
-    
+        """
+        soup = BeautifulSoup(xml,'xml')
+
+        # First thing first : instanciate a new BonitaRole
+        role = soup.Role
+        description = role.description.string
+        name = role.find('name').string # name is a method of Tag soup.role, so we must use find()
+        label = role.label.string
+
+        new_role = BonitaRole(name,label,description)
+
+        # Main properties now
+        new_role.uuid = role.uuid.string
+
+        # Other properties then
+        set_if_available(new_role,role,['dbid'])
+
+        return new_role
+
     @classmethod
-    def getRoleByName(cls,name):
-        """ Retrieve a role given a name """
-        url = "/identityAPI/getRole/"+name
-        pass
-    
+    def get_by_name(cls,name):
+        """ Retrieve a Role with the name
+
+        :param path: the name of the role to retrieve
+        :type path: str
+
+        """
+        url = '/identityAPI/getRole/'+name
+
+        try:
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        except BonitaHTTPError as err:
+            if 'RoleNotFoundException'.lower() in err.bonita_exception.lower():
+                return None
+            else:
+                raise
+
+        role = cls._instanciate_from_xml(xml)
+
+        return role
+
     @classmethod
-    def getRoleByUUID(cls,uuid):
-        pass
-    
+    def get_by_uuid(cls,uuid):
+        """ Retrieve a Role with the UUID 
+
+        :param uuid: the UUID of the role to retrieve
+        :type uuid: str
+
+        """
+        url = '/identityAPI/getRoleByUUID/'+uuid
+
+        try:
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        except BonitaHTTPError as err:
+            if 'RoleNotFoundException'.lower() in err.bonita_exception.lower():
+                return None
+            else:
+                raise
+
+        role = cls._instanciate_from_xml(xml)
+
+        return role
+
     @classmethod
-    def getRole(cls,**kwargs):
-        pass
-    
+    def get(cls,**kwargs):
+        """  Retrieve a Role with given parameter
+
+        Parameter can be any of :
+        - name
+        - uuid
+
+        :raise TypeError: if call with unknown parameter
+        :return: BonitaRole instance or None if not found
+
+        """
+        if 'name' in kwargs:
+            return cls.get_by_name(name=kwargs['name'])
+        if 'uuid' in kwargs:
+            return cls.get_by_uuid(uuid=kwargs['uuid'])
+        
+        raise TypeError('called get with unknown param : %s' % (kwargs.keys()))
+
+
+
+#    def _generate_save_url(self,variables):
+#        url = "/identityAPI/addRole/"+self.name
+#        data = None
+#        
+#        return (url,data)
+#    
+#    def _generate_delete_url(self,variables):
+#        url = "/identityAPI/removeRole/"+self.name
+#        data = None
+#        
+#        return (url,data)
+#    
 
 class BonitaMembership(BonitaObject):
     """ A class to map a membership in Bonita.
