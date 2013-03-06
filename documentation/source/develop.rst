@@ -75,8 +75,8 @@ Without bonita Server
             user = BonitaUser('u2','p2')
             user.save()
 
-Testing before developping
-==========================
+Testing live before developping tests
+=====================================
 
 In order to test the calling requests, and the provided response, you could use the `HTTPie`_ tool and command like this one :::
 

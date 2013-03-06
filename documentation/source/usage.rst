@@ -12,7 +12,7 @@ Creating a Process instance (opening a new case)
 
 .. code:: python
     
-    BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
+    BonitaServer.use('localhost', 9090, 'restuser', 'restbpm',['latin-1'])
 
     process = BonitaProcess('Demande_de_genotypage--1.0')
 
@@ -26,7 +26,7 @@ Adding a user
 
 .. code:: python
     
-    BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
+    BonitaServer.use('localhost', 9090, 'restuser', 'restbpm',['latin-1'])
 
     user = BonitaUser(username="john",password="onepass")
     user.save()
@@ -53,5 +53,3 @@ For example
 - :class:`ServerNotReachableError <pybonita.exception.ServerNotReachableError>`
 - :class:`UnexpectedResponseError <pybonita.exception.UnexpectedResponseError>`
 
-
-    
