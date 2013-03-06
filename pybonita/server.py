@@ -165,7 +165,7 @@ class BonitaServer:
         :type login: str
         :param password: Bonita REST request credential password
         :type password: str
-        :param charsets: List of charsets the Bonita Server could use for answering
+        :param charsets: List of charsets the Bonita Server could use to encode (to unicode)
         :type charsets: list of str
 
         """
