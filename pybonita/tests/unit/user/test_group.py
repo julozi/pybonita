@@ -117,33 +117,40 @@ class TestGetGroupByPath(TestWithMockedServer):
 
         assert group == None
 
-#    def test_known_group(self):
-#        """ Retrieve a group using the path """
-#        # Setup the response for MockServer
-#        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
-#        url = '/identityAPI/getGroupUsingPath'
-#        code = 200
-#        xml = build_bonita_group_xml(uuid='996633',name='mygroup')
-#        BonitaServer.set_response_list([[url,code,xml]])
+    def test_known_group_at_root(self):
+        """ Retrieve a group using the path (at root) """
+        # Setup the response for MockServer
+        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
+        url = '/identityAPI/getGroupUsingPath'
+        code = 200
+        xml = build_bonita_group_xml(uuid='996633',name='mygroup')
+        BonitaServer.set_response_list([[url,code,xml]])
 
-#        group = BonitaGroup.get_group_by_uuid('996633')
+        group = BonitaGroup.get_group_by_path('/something')
 
-#        assert isinstance(group,BonitaGroup)
-#        assert group.uuid == '996633'
+        assert isinstance(group,BonitaGroup)
+        assert group.uuid == '996633'
+        assert group.parent is None
 
-#    def test_known_group(self):
-#        """ Retrieve a group using the path """
-#        # Setup the response for MockServer
-#        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
-#        url = '/identityAPI/getGroupUsingPath'
-#        code = 200
-#        xml = build_bonita_group_xml(uuid='996633',)
-#        BonitaServer.set_response_list([[url,code,xml]])
+    def test_known_group_deep_path(self):
+        """ Retrieve a group using the path (deep path) """
+        # Setup the response for MockServer
+        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
+        url = '/identityAPI/getGroupUsingPath'
+        code = 200
+        gran_father_xml = build_bonita_group_xml(uuid='996631',name='gran-father',as_parent=True)
+        father_xml = build_bonita_group_xml(uuid='996632',name='father',parent=gran_father_xml, as_parent=True)
+        xml = build_bonita_group_xml(uuid='996633',name='child-group',parent=father_xml)
+        BonitaServer.set_response_list([[url,code,xml]])
 
-#        group = BonitaGroup.get_group_by_path('known')
+        group = BonitaGroup.get_group_by_path('/gran-father/father/child-group')
 
-#        assert isinstance(group,BonitaGroup)
-#        #assert group. == 
+        assert isinstance(group,BonitaGroup)
+        assert group.uuid == '996633'
+        assert isinstance(group.parent,BonitaGroup)
+        assert group.parent.uuid == '996632'
+        assert isinstance(group.parent.parent,BonitaGroup)
+        assert group.parent.parent.uuid == '996631'
 
 
 class TestGetGroupByUUID(TestWithMockedServer):

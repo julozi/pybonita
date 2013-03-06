@@ -250,6 +250,9 @@ def set_response_list(cls,response_list):
         response_list = BonitaMockedServerImpl.get_response_list()
         response_list.add_or_augment_response_list(url,method,status,type,message)
 
+
+from pybonita.user import BonitaGroup
+
 def build_dumb_bonita_error_body(exception='',code='',message=''):
     # Add your own Bonita java Exception in this dict to make your call shorter
     # So you can call with exception='UserNotFoundException'
@@ -296,8 +299,8 @@ def build_bonita_user_xml(uuid,password='',username=''):
 def build_bonita_group_xml(uuid,name,description='',label='',parent=None, as_parent=False):
     """ Build XML for a Bonita Group information 
 
-    :param parent: parent of this Group
-    :type parent: BonitaGroup
+    :param parent: parent of this Group, rather as a BonitaGroup or by XML
+    :type parent: BonitaGroup ou unicode
     :param as_parent: State that the XML group must be provided as a parentGroup (default False)
     :type as_parent: bool
 
@@ -326,12 +329,15 @@ def build_bonita_group_xml(uuid,name,description='',label='',parent=None, as_par
         tag_group.append(tag)
 
     if parent:
-        if not isinstance(parent,BonitaGroup):
-            raise TypeError('parent must be a BonitaGroup instance')
+        if isinstance(parent,BonitaGroup):
+            # Build parent XML definition
+            parent_xml = build_bonita_group_xml(parent.uuid, parent.name, parent.description, parent.label,parent.parent, True)
+        else:
+            # parent XML is directly in parent
+            parent_xml = parent
 
-        # Build parent XML definition
-        parent_xml = build_bonita_group_xml(parent.uuid, parent.name, parent.description, parent.label,parent.parent, True)
-        tag_group.append(parent_xml)
+        parent_soup = BeautifulSoup(parent_xml,'xml')
+        tag_group.append(parent_soup.parentGroup)
 
     return unicode(tag_group)
 
