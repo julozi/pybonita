@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from nose.tools import raises
 
 from pybonita import BonitaServer
+from pybonita.exception import BonitaXMLError
 from pybonita.tests import TestCase, TestWithMockedServer, build_dumb_bonita_error_body,\
     build_bonita_group_xml
 from pybonita.user import BonitaGroup
@@ -10,6 +11,13 @@ from pybonita.user import BonitaGroup
 
 class TestInstanciateFromXML(TestCase):
     """ Test the _instanciate_from_xml method """
+
+    @raises(BonitaXMLError)
+    def test_invalid_xml(self):
+        """ Try to instanciate a BonitaGroup from invalid XML """
+        xml = '<coucou>une valeur</coucou>'
+
+        group = BonitaGroup._instanciate_from_xml(xml)
 
     def test_group_without_parent(self):
         """ Instanciate a Bonita group without any parent """
