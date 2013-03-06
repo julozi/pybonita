@@ -190,4 +190,26 @@ class TestGetGroupByUUID(TestWithMockedServer):
         assert group.uuid == '996633'
 
 class TestGetDefaultRootGroup(TestWithMockedServer):
-    pass
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_root_group(self):
+        """ Retrieve root group : /platform """
+        # Setup the response for MockServer
+        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
+        url = '/identityAPI/getGroupUsingPath'
+        code = 200
+        xml = build_bonita_group_xml(uuid='996633',name='platform')
+        BonitaServer.set_response_list([[url,code,xml]])
+
+        group = BonitaGroup.get_default_root_group()
+
+        assert isinstance(group,BonitaGroup)
+        assert group.name == u'platform'
+        assert group.parent is None
