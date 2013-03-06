@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup, UnicodeDammit
 
 import requests
 from requests.auth import HTTPBasicAuth
+from requests.exceptions import ConnectionError, Timeout, HTTPError
 
 from pybonita import logger
 from .exception import BonitaServerNotInitializedError,ServerNotReachableError,\
