@@ -414,24 +414,29 @@ class BonitaRole(BonitaObject):
         :return: BonitaRole
         
         """
+        if not isinstance(xml,(str,unicode)):
+            raise TypeError('xml must be a string or unicode not %s' % (type(xml)))
+
         soup = BeautifulSoup(xml,'xml')
 
-        # First thing first : instanciate a new BonitaRole
-        if soup.Role is None:
-            raise BonitaXMLError('xml does not seem to be for a Role')
+        try:
+            # First thing first : instanciate a new BonitaRole
+            role_soup = xml_find(soup,'role')
 
-        role = soup.Role
-        description = role.description.string
-        name = role.find('name').string # name is a method of Tag soup.role, so we must use find()
-        label = role.label.string
+            description = xml_find(role_soup,'description').string
+            name = xml_find(role_soup,'name').string
+            label = xml_find(role_soup,'label').string
 
-        new_role = BonitaRole(name,label,description)
+            new_role = BonitaRole(name,label,description)
 
-        # Main properties now
-        new_role.uuid = role.uuid.string
+            # Main properties now
+            new_role.uuid = xml_find(role_soup,'uuid').string
 
-        # Other properties then
-        set_if_available(new_role,role,['dbid'])
+            # Other properties then
+            set_if_available(new_role,role_soup,['dbid'])
+
+        except XMLSchemaParseError as exc:
+            raise
 
         return new_role
 

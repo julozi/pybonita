@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from nose.tools import raises
 
 from pybonita import BonitaServer
-from pybonita.exception import BonitaXMLError
+from pybonita.exception import XMLSchemaParseError
 from pybonita.tests import TestCase, TestWithMockedServer, build_dumb_bonita_error_body,\
     build_bonita_role_xml
 from pybonita.user import BonitaRole
@@ -12,7 +12,7 @@ from pybonita.user import BonitaRole
 class TestInstanciateFromXML(TestCase):
     """ Test the _instanciate_from_xml method """
 
-    @raises(BonitaXMLError)
+    @raises(XMLSchemaParseError)
     def test_invalid_xml(self):
         """ Try to instanciate a BonitaRole from invalid XML """
         xml = '<coucou>une valeur</coucou>'

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from lxml.etree import XMLSchemaParseError
+
 __all__ = ['BonitaException','BonitaServerNotInitializedError',
     'ServerNotReachableError','UnexpectedResponseError','BonitaHTTPError',
     'BonitaXMLError']
@@ -47,6 +49,6 @@ class BonitaHTTPError(BonitaException):
         
         super(BonitaHTTPError,self).__init__(err_info)
 
-class BonitaXMLError(BonitaException):
+class BonitaXMLError(BonitaException,XMLSchemaParseError):
     """ XML does not seem to correspond to Bonita REST (!!) API """
     _base_message = 'XML not what Bonita states'
