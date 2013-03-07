@@ -26,21 +26,27 @@ def dictToMapString(data_dict):
 
     return doc.toxml()
 
-def set_if_available(bonita_object, soup, tags):
+def set_if_available(bonita_object, soup, tags, raise_exception=False):
     """ Sets up properties of a BonitaObject from the given list of tags if available in soup.
 
     :param bonita_object: Object where to put the new properties
     :type bonita_object: BonitaObject, but all python object can be used
     :param soup: xml soup where to extract the tags
-    :type soup: BeautifulSoup instance
+    :type soup: bs4.element.Tag instance
     :param tags: list of the tags to add if available
     :type tags: list[unicode or str]
+    :param raise_exception: should we raise an exception if the tag is not found ?
+    :type raise_exception: bool (default : False)
+    :raise XMLSchemaParseError: if soup does not contain the tag with the given name and raise_exception is true
 
     """
     for tag in tags:
-        attr = getattr(soup,tag)
-        if attr != None and 'string' in dir(attr):
+        try:
+            attr = xml_find(soup,tag)
             setattr(bonita_object,tag,attr.string)
+        except XMLSchemaParseError as exc:
+            if raise_exception:
+                raise
 
 def xml_find(soup,name,raise_exception=True):
     """ Extends the bs4.find method to look for name in soup in a first-letter case insensitive manner.
@@ -71,5 +77,3 @@ def xml_find(soup,name,raise_exception=True):
         raise XMLSchemaParseError('tag %s not found' % (name))
 
     return(tag)
-
-

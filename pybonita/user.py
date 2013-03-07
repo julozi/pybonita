@@ -272,29 +272,36 @@ class BonitaGroup(BonitaObject):
         :return: BonitaGroup
         
         """
+        if not isinstance(xml,(str,unicode)):
+            raise TypeError('xml must be a string or unicode not %s' % (type(xml)))
+
         soup = BeautifulSoup(xml,'xml')
 
-        # First thing first : instanciate a new BonitaGroup
-        if (not is_parent and soup.Group is None) or (is_parent and soup.parentGroup is None):
-            raise BonitaXMLError('xml does not seem to be for a Group')
+        try:
+            # First thing first : instanciate a new BonitaGroup
+            group_soup = xml_find(soup,'parentGroup') if is_parent else xml_find(soup,'Group')
+        except XMLSchemaParseError as exc:
+                raise BonitaXMLError('xml does not seem to be for a Group')
 
-        group = soup.Group if not is_parent else soup.parentGroup
-        description = group.description.string
-        name = group.find('name').string # name is a method of Tag soup.group, so we must use find()
-        label = group.label.string
+        try:
+            description = xml_find(group_soup,'description').string
+            name = xml_find(group_soup,'name').string
+            label = xml_find(group_soup,'label').string
 
-        new_group = BonitaGroup(name,label,description)
+            new_group = BonitaGroup(name,label,description)
 
-        # Main properties now
-        new_group.uuid = group.uuid.string
+            # Main properties now
+            new_group.uuid = xml_find(group_soup,'uuid').string
 
-        # Other properties then
-        set_if_available(new_group,group,['dbid'])
+            # Other properties then
+            set_if_available(new_group,group_soup,['dbid'])
 
-        # Parent hierarchy
-        if group.parentGroup is not None:
-            parent = group.parentGroup
-            new_group.parent = cls._instanciate_from_xml(unicode(parent),is_parent=True)
+            # Parent hierarchy
+            parent_soup = xml_find(group_soup,'parentGroup',raise_exception=False)
+            if parent_soup is not None:
+                new_group.parent = cls._instanciate_from_xml(unicode(parent_soup),is_parent=True)
+        except XMLSchemaParseError as exc:
+            raise
 
         return new_group
 
