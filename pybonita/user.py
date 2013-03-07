@@ -245,7 +245,17 @@ class BonitaUser(BonitaObject):
         :raise TypeError: if call with unknown parameter
 
         """
-        return []
+        if len(kwargs) == 0:
+            # Get all Users
+            return cls.find_all()
+        elif 'role' in kwargs and 'group' in kwargs:
+            return cls.find_by_role_and_group(role=kwargs['role'],group=kwargs['group'])
+        elif 'role' in kwargs:
+            return cls.find_by_role(kwargs['role'])
+        elif 'group' in kwargs:
+            return cls.find_by_group(kwargs['group'])
+        else:
+            raise TypeError('some param(s) not supported : %s' % (kwargs.keys()))
 
     @classmethod
     def find_all(cls):
@@ -270,6 +280,125 @@ class BonitaUser(BonitaObject):
             set_soup = xml_find(soup,'set')
 
             users_tag = xml_find_all(set_soup,'user')
+            for user_tag in users_tag:
+                user = BonitaUser._instanciate_from_xml(unicode(user_tag))
+                users.append(user)
+
+        except XMLSchemaParseError as exc:
+            raise
+
+        return users
+
+    @classmethod
+    def find_by_role(cls, role):
+        """ Retrieve all Users bound to a Role
+
+        :param role: role the users must be bound to
+        :type role: BonitaRole
+        :return: list of BonitaUser
+        :raise TypeError: if role not an instance of BonitaRole
+
+        """
+        if not isinstance(role,BonitaRole):
+            raise TypeError('role must be a BonitaRole instance')
+
+        url = "/identityAPI/getAllUsersInRole/"+role.uuid
+
+        try:
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        except Exception:
+            raise
+
+        # Decode the XML response
+        soup = BeautifulSoup(xml,'xml')
+
+        users = []
+        try:
+            # Get the list of Users
+            list_soup = xml_find(soup,'list')
+
+            users_tag = xml_find_all(list_soup,'user')
+            for user_tag in users_tag:
+                user = BonitaUser._instanciate_from_xml(unicode(user_tag))
+                users.append(user)
+
+        except XMLSchemaParseError as exc:
+            raise
+
+        return users
+
+    @classmethod
+    def find_by_group(cls, group):
+        """ Retrieve all Users bound to a Group
+
+        :param group: group the users must be bound to
+        :type group: BonitaGroup
+        :return: list of BonitaUser
+        :raise TypeError: if group not an instance of BonitaRole
+
+        """
+        if not isinstance(group,BonitaGroup):
+            raise TypeError('group must be a BonitaGroup instance')
+
+        url = "/identityAPI/getAllUsersInGroup/"+group.uuid
+
+        try:
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        except Exception:
+            raise
+
+        # Decode the XML response
+        soup = BeautifulSoup(xml,'xml')
+
+        users = []
+        try:
+            # Get the list of Users
+            list_soup = xml_find(soup,'list')
+
+            users_tag = xml_find_all(list_soup,'user')
+            for user_tag in users_tag:
+                user = BonitaUser._instanciate_from_xml(unicode(user_tag))
+                users.append(user)
+
+        except XMLSchemaParseError as exc:
+            raise
+
+        return users
+
+    @classmethod
+    def find_by_role_and_group(cls, role, group):
+        """ Retrieve all Users bound to a Role and a Group
+
+        :param role: role the users must be bound to
+        :type role: BonitaRole
+        :param group: group the users must be bound to
+        :type group: BonitaGroup
+        :return: list of BonitaUser
+        :raise TypeError: if group/role not an instance of BonitaGroup/BonitaRole
+
+        """
+        if not isinstance(group,BonitaGroup):
+            raise TypeError('group must be a BonitaGroup instance')
+        if not isinstance(role,BonitaRole):
+            raise TypeError('role must be a BonitaRole instance')
+
+
+        url = "/identityAPI/getAllUsersInRoleAndGroup/"+role.uuid+"/"+group.uuid
+
+        try:
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        except Exception:
+            raise
+
+        # Decode the XML response
+        soup = BeautifulSoup(xml,'xml')
+
+        users = []
+        try:
+            # Get the list of Users
+            list_soup = xml_find(soup,'list')
+
+            users_tag = xml_find_all(list_soup,'user')
             for user_tag in users_tag:
                 user = BonitaUser._instanciate_from_xml(unicode(user_tag))
                 users.append(user)

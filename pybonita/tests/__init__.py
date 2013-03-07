@@ -5,7 +5,7 @@ from unittest import TestCase
 __all__ = ['TestWithBonitaServer','TestWithMockedServer',
     'build_dumb_bonita_error_body','build_bonita_user_xml',
     'build_bonita_group_xml','build_bonita_role_xml',
-    'build_bonita_membership_xml','build_xml_set']
+    'build_bonita_membership_xml','build_xml_set','build_xml_list']
 
 
 class TestWithBonitaServer(TestCase):
@@ -461,6 +461,19 @@ def build_xml_set(xml_list):
     soup = BeautifulSoup('','xml')
 
     tag_set = soup.new_tag('set')
+
+    for xml_elem in xml_list:
+        elem_soup = BeautifulSoup(xml_elem,'xml')
+        tag_set.append(elem_soup.contents[0])
+
+    return unicode(tag_set)
+
+def build_xml_list(xml_list):
+    """ Build a Bonita List of element """
+    # Build XML body
+    soup = BeautifulSoup('','xml')
+
+    tag_set = soup.new_tag('list')
 
     for xml_elem in xml_list:
         elem_soup = BeautifulSoup(xml_elem,'xml')
