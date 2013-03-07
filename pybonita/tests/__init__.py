@@ -4,7 +4,8 @@ from unittest import TestCase
 
 __all__ = ['TestWithBonitaServer','TestWithMockedServer',
     'build_dumb_bonita_error_body','build_bonita_user_xml',
-    'build_bonita_group_xml','build_bonita_role_xml']
+    'build_bonita_group_xml','build_bonita_role_xml',
+    'build_bonita_membership_xml']
 
 
 class TestWithBonitaServer(TestCase):
@@ -251,7 +252,7 @@ def set_response_list(cls,response_list):
         response_list.add_or_augment_response_list(url,method,status,type,message)
 
 
-from pybonita.user import BonitaGroup
+from pybonita.user import BonitaGroup, BonitaRole
 
 def build_dumb_bonita_error_body(exception='',code='',message=''):
     # Add your own Bonita java Exception in this dict to make your call shorter
@@ -297,7 +298,7 @@ def build_bonita_user_xml(uuid,password='',username=''):
 
     return unicode(tag_user)
 
-def build_bonita_group_xml(uuid, name, description='', label='', dbid='', parent=None, as_parent=False):
+def build_bonita_group_xml(uuid, name, description='', label='', dbid='', parent=None, as_parent=False, with_class=False):
     """ Build XML for a Bonita Group information 
 
     :param uuid:
@@ -321,9 +322,11 @@ def build_bonita_group_xml(uuid, name, description='', label='', dbid='', parent
 
     if as_parent:
         tag_group = soup.new_tag('parentGroup')
-        tag_group.attrs['class']='Group'
     else:
         tag_group = soup.new_tag('Group')
+
+    if as_parent or with_class:
+        tag_group.attrs['class']='Group'
 
     tag_uuid = soup.new_tag('uuid')
     tag_description = soup.new_tag('description')
@@ -384,12 +387,15 @@ def build_bonita_process_definition_xml(uuid, name=None, version=None, label=Non
 
     return unicode(tag_process)
 
-def build_bonita_role_xml(uuid,name,description='',label='',dbid=''):
+def build_bonita_role_xml(uuid,name,description='',label='',dbid='',with_class=False):
     """ Build XML for a Bonita Role information """
     # Build XML body
     soup = BeautifulSoup('','xml')
 
     tag_role = soup.new_tag('Role')
+    if with_class:
+        tag_role.attrs['class']='Role'
+
     tag_uuid = soup.new_tag('uuid')
     tag_name = soup.new_tag('name')
     tag_description = soup.new_tag('description')
@@ -408,3 +414,41 @@ def build_bonita_role_xml(uuid,name,description='',label='',dbid=''):
         tag_role.append(tag)
 
     return unicode(tag_role)
+
+def build_bonita_membership_xml(uuid,role,group, dbid=''):
+    """ Build XML for a Bonita Membership information """
+    # Build XML body
+    soup = BeautifulSoup('','xml')
+
+    tag_membership = soup.new_tag('Membership')
+    tag_uuid = soup.new_tag('uuid')
+    tag_dbid = soup.new_tag('dbid')
+
+    tag_uuid.string = uuid
+    tag_dbid.string = dbid
+    membership_tags = [tag_uuid,tag_dbid]
+
+    for tag in membership_tags:
+        tag_membership.append(tag)
+
+    if isinstance(group,BonitaGroup):
+        # Build group XML definition
+        group_xml = build_bonita_group_xml(group.uuid, group.name, group.description, group.label,group.parent,with_class=True)
+    else:
+        # group XML is directly in group param
+        group_xml = group
+
+    group_soup = BeautifulSoup(group_xml,'xml')
+    tag_membership.append(group_soup.Group)
+
+    if isinstance(role,BonitaGroup):
+        # Build group XML definition
+        role_xml = build_bonita_role_xml(role.uuid,role.name,role.description,role.label,role.dbid,with_class=True)
+    else:
+        # group XML is directly in group param
+        role_xml = role
+
+    role_soup = BeautifulSoup(role_xml,'xml')
+    tag_membership.append(role_soup.Role)
+
+    return unicode(tag_membership)

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 __all__ = ['BonitaException','BonitaServerNotInitializedError',
-    'ServerNotReachableError','UnexpectedResponseError','BonitaHTTPError']
+    'ServerNotReachableError','UnexpectedResponseError','BonitaHTTPError',
+    'BonitaXMLError']
 
 
 class BonitaException(Exception):
@@ -46,3 +47,6 @@ class BonitaHTTPError(BonitaException):
         
         super(BonitaHTTPError,self).__init__(err_info)
 
+class BonitaXMLError(BonitaException):
+    """ XML does not seem to correspond to Bonita REST (!!) API """
+    _base_message = 'XML not what Bonita states'
