@@ -69,7 +69,7 @@ def xml_find(soup,name,raise_exception=True):
         raise TypeError('name muse be a string or unicode')
 
     base_name = name
-    capitalize_name = base_name.capitalize()
+    capitalize_name = base_name[0].upper()+base_name[1:]
 
     tag = soup.find({base_name:True, capitalize_name:True})
 

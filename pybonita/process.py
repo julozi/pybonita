@@ -9,10 +9,10 @@ from xml.dom.minidom import parseString
 from bs4 import BeautifulSoup
 
 from pybonita import logger
-from pybonita.exception import BonitaHTTPError
+from pybonita.exception import BonitaHTTPError, XMLSchemaParseError
 from pybonita.object import BonitaObject
 from pybonita.server import BonitaServer
-from pybonita.utils import dictToMapString
+from pybonita.utils import dictToMapString, xml_find
 
 __all__ = ['BonitaCase', 'BonitaProcess']
 
@@ -68,14 +68,20 @@ class BonitaProcess(BonitaObject):
     @classmethod
     def _instanciate_from_xml(cls, xml):
         """ Instanciate a BonitaProcess object from its xml definition """
+        if not isinstance(xml,(str,unicode)):
+                    raise TypeError('xml must be a string or unicode not %s' % (type(xml)))
 
-        soup = BeautifulSoup(xml.encode('iso-8859-1'),'xml')
+        soup = BeautifulSoup(xml,'xml')
 
-        uuid = soup.ProcessDefinition.uuid.string
-        process = BonitaProcess(uuid)
+        try:
+            process_soup = xml_find(soup,'processDefinition')
+            uuid = xml_find(process_soup,'uuid').string
+            process = BonitaProcess(uuid)
 
-        process._name = soup.find("name").text
-        process._version = soup.ProcessDefinition.version.text
+            process._name = xml_find(process_soup,'name').string
+            process._version = xml_find(process_soup,'version').string
+        except XMLSchemaParseError as exc:
+            raise
 
         return process
 
