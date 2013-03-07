@@ -6,7 +6,7 @@ from lxml.etree import XMLSchemaParseError
 from . import logger, BonitaServer
 from .exception import BonitaHTTPError, BonitaXMLError
 from .object import BonitaObject
-from .utils import dictToMapString, set_if_available, xml_find
+from .utils import dictToMapString, set_if_available, xml_find, xml_find_all
 
 __all__ = ['BonitaUser','BonitaGroup','BonitaRole','BonitaMembership']
 
@@ -121,7 +121,7 @@ class BonitaUser(BonitaObject):
         url = "/identityAPI/addMembershipToUser/"+self.uuid+"/"+membership.uuid
         
         try:
-            response = self.server.sendRESTRequest(url=url)
+            response = BonitaServer.get_instance().sendRESTRequest(url=url)
         except Exception:
             print 'Exception'
     
@@ -246,6 +246,38 @@ class BonitaUser(BonitaObject):
 
         """
         return []
+
+    @classmethod
+    def find_all(cls):
+        """ Retrieve all Users.
+
+        :return: list of BonitaUser
+
+        """
+        url = "/identityAPI/getUsers"
+
+        try:
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url)
+        except Exception:
+            raise
+
+        # Decode the XML response
+        soup = BeautifulSoup(xml,'xml')
+
+        users = []
+        try:
+            # Get the set of Users
+            set_soup = xml_find(soup,'set')
+
+            users_tag = xml_find_all(set_soup,'user')
+            for user_tag in users_tag:
+                user = BonitaUser._instanciate_from_xml(unicode(user_tag))
+                users.append(user)
+
+        except XMLSchemaParseError as exc:
+            raise
+
+        return users
 
     # setter par parametre
     # par exemple on fait :

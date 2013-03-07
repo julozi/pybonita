@@ -3,7 +3,7 @@ from nose.tools import raises
 
 from pybonita import BonitaServer
 from pybonita.tests import TestWithMockedServer, build_dumb_bonita_error_body,\
-    build_bonita_user_xml
+    build_bonita_user_xml, build_xml_set
 from pybonita.user import BonitaUser
 
 
@@ -136,3 +136,50 @@ class TestGetUserByUUID(TestWithMockedServer):
 
         assert isinstance(user,BonitaUser)
         assert user.uuid == '996633'
+
+class TestFindAll(TestWithMockedServer):
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_no_user(self):
+        """ Retrieve all users but there are none """
+        # Setup the response for MockServer
+        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
+        url = '/identityAPI/getUsers'
+        code = 200
+        xml = "<set></set>"
+        BonitaServer.set_response_list([[url,code,xml]])
+
+        users = BonitaUser.find_all()
+
+        assert isinstance(users,list)
+        assert len(users) == 0
+
+    def test_some_users(self):
+        """ Retrieve all users """
+        # Setup the response for MockServer
+        BonitaServer.use('localhost', 9090, 'restuser', 'restbpm')
+        url = '/identityAPI/getUsers'
+        code = 200
+        user1_xml = build_bonita_user_xml(uuid='996633',password='',username='user1')
+        user2_xml = build_bonita_user_xml(uuid='112345',password='',username='user2')
+        xml = build_xml_set([user1_xml,user2_xml])
+        BonitaServer.set_response_list([[url,code,xml]])
+
+        users = BonitaUser.find_all()
+
+        assert isinstance(users,list)
+        assert len(users) == 2
+
+        for user in users:
+            assert isinstance(user,BonitaUser)
+
+        sorted_users = sorted(users, key=lambda user: user.uuid)
+        assert sorted_users[0].uuid == u'112345'
+        assert sorted_users[1].uuid == u'996633'

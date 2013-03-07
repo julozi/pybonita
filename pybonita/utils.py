@@ -4,7 +4,7 @@ from xml.dom.minidom import Document
 
 from lxml.etree import XMLSchemaParseError
 
-__all__ = ['dictToMapString','set_if_available','xml_find']
+__all__ = ['dictToMapString','set_if_available','xml_find','xml_find_all']
 
 def dictToMapString(data_dict):
 
@@ -77,3 +77,27 @@ def xml_find(soup,name,raise_exception=True):
         raise XMLSchemaParseError('tag %s not found' % (name))
 
     return(tag)
+
+def xml_find_all(soup,name):
+    """ Extends the bs4.find_all method to look for name in soup in a first-letter case insensitive manner.
+    Yes, Bonita has the great feature (!!) to return either upper or lower case tag (inside/ouside of XML-like contains)
+
+    :param soup: the soup to look into
+    :type soup: bs4.element.Tag
+    :param name: tag name to look for
+    :type name: str or unicode
+    :return: list of bs4.element.Tag, possibly void list
+    :raise TypeError: if soup is not a bs4.element.Tag instance
+
+    """
+    if not isinstance(soup,Tag):
+        raise TypeError('soup must be a bs4.element.Tag instance : %s' % (type(soup)))
+    if not isinstance(name,(str,unicode)):
+        raise TypeError('name muse be a string or unicode')
+
+    base_name = name
+    capitalize_name = base_name[0].upper()+base_name[1:]
+
+    tags = soup.find_all({base_name:True, capitalize_name:True})
+
+    return(tags)
