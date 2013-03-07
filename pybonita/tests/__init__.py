@@ -59,7 +59,7 @@ class BonitaMockedServerImpl(object):
             soup = BeautifulSoup(data,'xml')
             if soup == None:
                 raise Exception('data : %s[%s] and can\'t build soup with that' % (str(data),type(data)))
-            soup_exception = soup.find(name=re.compile("exception"))
+            soup_exception = soup.find(name=re.compile("Exception"))
             bonita_exception = soup_exception.name
             message = soup.detailMessage
             code = soup.errorCode
@@ -253,6 +253,7 @@ def set_response_list(cls,response_list):
 
 
 from pybonita.user import BonitaGroup, BonitaRole
+from pybonita.utils import xml_find
 
 def build_dumb_bonita_error_body(exception='',code='',message=''):
     # Add your own Bonita java Exception in this dict to make your call shorter
@@ -338,6 +339,7 @@ def build_bonita_group_xml(uuid, name, description='', label='', dbid='', parent
     tag_description.string = description
     tag_name.string = name
     tag_label.string = label
+    print 'dbid : %s (%s)' % (dbid,type(dbid))
     tag_dbid.string = dbid
     group_tags = [tag_uuid,tag_description,tag_name,tag_label,tag_dbid]
 
@@ -433,22 +435,22 @@ def build_bonita_membership_xml(uuid,role,group, dbid=''):
 
     if isinstance(group,BonitaGroup):
         # Build group XML definition
-        group_xml = build_bonita_group_xml(group.uuid, group.name, group.description, group.label,group.parent,with_class=True)
+        group_xml = build_bonita_group_xml(group.uuid, group.name, group.description, group.label,parent=group.parent,with_class=True)
+        group_soup = BeautifulSoup(group_xml,'xml')
+        tag_membership.append(xml_find(group_soup,'group'))
     else:
         # group XML is directly in group param
-        group_xml = group
+        group_soup = BeautifulSoup(group,'xml')
+        tag_membership.append(group_soup.contents[0])
 
-    group_soup = BeautifulSoup(group_xml,'xml')
-    tag_membership.append(group_soup.Group)
-
-    if isinstance(role,BonitaGroup):
+    if isinstance(role,BonitaRole):
         # Build group XML definition
-        role_xml = build_bonita_role_xml(role.uuid,role.name,role.description,role.label,role.dbid,with_class=True)
+        role_xml = build_bonita_role_xml(role.uuid,role.name,role.description,role.label,role.dbid if 'dbid' in dir(role) else '',with_class=True)
+        role_soup = BeautifulSoup(role_xml,'xml')
+        tag_membership.append(xml_find(role_soup,'role'))
     else:
         # group XML is directly in group param
-        role_xml = role
-
-    role_soup = BeautifulSoup(role_xml,'xml')
-    tag_membership.append(role_soup.Role)
+        role_soup = BeautifulSoup(role,'xml')
+        tag_membership.append(role_soup.contents[0])
 
     return unicode(tag_membership)

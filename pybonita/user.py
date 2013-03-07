@@ -552,21 +552,36 @@ class BonitaMembership(BonitaObject):
         :raise BonitaException: if group or role can't be instanciate from XML
         
         """
+        if not isinstance(xml,(str,unicode)):
+            raise TypeError('xml must be a string or unicode not %s' % (type(xml)))
+
         soup = BeautifulSoup(xml,'xml')
 
-        # First try to decode Role and Group
-        membership = soup.Membership
-        group = BonitaGroup._instanciate_from_xml(membership.Group)
-        if group is None:
-            raise BonitaXMLError('can\'t properly creat a group from XML')
-        role = BonitaRole._instanciate_from_xml(membership.Role)
-        if role is None:
-            raise BonitaXMLError('can\'t properly creat a role from XML')
+        try:
+            membership_soup = xml_find(soup,'membership')
 
-        new_membership = BonitaMembership(role,group)
+            # First try to decode Role and Group
+            try:
+                group_soup = xml_find(membership_soup,'group')
+                group = BonitaGroup._instanciate_from_xml(unicode(group_soup))
+            except XMLSchemaParseError as exc:
+                raise BonitaXMLError('can\'t properly creat a group from XML')
 
-        # Other properties then
-        set_if_available(new_membership,membership,['dbid'])
+            try:
+                role_soup = xml_find(membership_soup,'role')
+                role = BonitaRole._instanciate_from_xml(unicode(role_soup))
+            except XMLSchemaParseError as axc:
+                raise BonitaXMLError('can\'t properly creat a role from XML')
+
+            new_membership = BonitaMembership(role,group)
+
+            # Main properties now
+            new_membership.uuid = xml_find(membership_soup,'uuid').string
+
+            # Other properties then
+            set_if_available(new_membership,membership_soup,['dbid'])
+        except:
+            raise
 
         return new_membership
 
@@ -607,6 +622,11 @@ class BonitaMembership(BonitaObject):
         :type group: BonitaGroup
 
         """
+        if not isinstance(role,BonitaRole):
+            raise TypeError('role must be a BonitaRole instance')
+        if not isinstance(group, BonitaGroup):
+            raise TypeError('group must be a BonitaGroup')
+
         url = '/identityAPI/getMembershipForRoleAndGroup/'+role.uuid+'/'+group.uuid
 
         try:
@@ -656,9 +676,10 @@ class BonitaMembership(BonitaObject):
         :return: BonitaMembership instance or None if not found
 
         """
-        if 'role' in kwargs:
-            if 'group' in kwargs:
+        if 'role' in kwargs and 'group' in kwargs:
                 return cls.get_by_role_and_group(role=kwargs['role'],group=kwargs['group'])
+        if 'role_uuid' in kwargs and 'group_uuid' in kwargs:
+                return cls.get_by_role_and_group_uuid(role_uuid=kwargs['role_uuid'],group_uuid=kwargs['group_uuid'])
         if 'uuid' in kwargs:
             return cls.get_by_uuid(uuid=kwargs['uuid'])
         
