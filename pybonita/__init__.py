@@ -7,4 +7,4 @@ logger = logging.getLogger(__name__)
 
 from .process import BonitaProcess, BonitaCase
 from .server import BonitaServer
-from .user import BonitaUser, BonitaGroup, BonitaRole
+from .user import BonitaUser, BonitaGroup, BonitaRole, BonitaMembership

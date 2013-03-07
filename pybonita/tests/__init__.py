@@ -61,7 +61,7 @@ class BonitaMockedServerImpl(object):
                 raise Exception('data : %s[%s] and can\'t build soup with that' % (str(data),type(data)))
             soup_exception = soup.find(name=re.compile("Exception"))
             bonita_exception = soup_exception.name
-            message = soup.detailMessage
+            message = soup.detailmessage.string if soup.detailmessage is not None else ''
             code = soup.errorCode
             raise BonitaHTTPError(bonita_exception,code,message)
 

@@ -76,7 +76,7 @@ class BonitaServer:
                     import re
                     soup = BeautifulSoup(response.text,'xml')
                     bonita_exception = soup.find(name=re.compile("exception")).name
-                    message = soup.detailmessage.text
+                    message = soup.detailmessage.string if soup.detailmessage is not None else ''
                     code = int(soup.errorCode.text) if soup.errorCode != None else 500
                     if code != None or message != None:
                         raise BonitaHTTPError(bonita_exception=bonita_exception,code=code,message=message)

@@ -215,6 +215,7 @@ class BonitaUser(BonitaObject):
         """ Retrieve a User with given parameter
 
         Parameter can be any of :
+
         - username
         - uuid
 
@@ -229,6 +230,23 @@ class BonitaUser(BonitaObject):
         
         raise TypeError('called get_user with unknown param : %s' % (kwargs.keys()))
     
+    @classmethod
+    def find(cls,**kwargs):
+        """ Retrieve a list of User with given parameter
+
+        If no parameter, retrieve all users in server.
+        TODO accept some parameter like role, group
+        Parameter can be any of :
+
+        - role : BonitaRole
+        - group : BonitaGroup
+
+        :return: list of BonitaUser, possibly a void list
+        :raise TypeError: if call with unknown parameter
+
+        """
+        return []
+
     # setter par parametre
     # par exemple on fait :
     # user = BonitaUser(login,pass)
@@ -279,7 +297,7 @@ class BonitaGroup(BonitaObject):
 
         try:
             # First thing first : instanciate a new BonitaGroup
-            group_soup = xml_find(soup,'parentGroup') if is_parent else xml_find(soup,'Group')
+            group_soup = xml_find(soup,'parentGroup') if is_parent else xml_find(soup,'group')
         except XMLSchemaParseError as exc:
                 raise BonitaXMLError('xml does not seem to be for a Group')
 
@@ -362,6 +380,7 @@ class BonitaGroup(BonitaObject):
         """  Retrieve a Group with given parameter
 
         Parameter can be any of :
+
         - path
         - uuid
 
@@ -489,6 +508,7 @@ class BonitaRole(BonitaObject):
         """  Retrieve a Role with given parameter
 
         Parameter can be any of :
+
         - name
         - uuid
 
@@ -669,7 +689,9 @@ class BonitaMembership(BonitaObject):
         """  Retrieve a Membership with given parameter
 
         Parameter can be any of :
-        - [role,group]
+
+        - role and group
+        - role_uuid and group_uuid
         - uuid
 
         :raise TypeError: if call with unknown parameter
