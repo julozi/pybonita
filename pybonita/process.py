@@ -74,8 +74,9 @@ class BonitaProcess(BonitaObject):
         soup = BeautifulSoup(xml,'xml')
 
         try:
-            process_soup = xml_find(soup,'processDefinition')
+            process_soup = xml_find(soup,'ProcessDefinition')
             uuid = xml_find(process_soup,'uuid').string
+            
             process = BonitaProcess(uuid)
 
             process._name = xml_find(process_soup,'name').string
