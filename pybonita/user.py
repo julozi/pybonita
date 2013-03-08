@@ -15,7 +15,9 @@ class BonitaUser(BonitaObject):
     """ A class to map a user in Bonita.
     
     """
-    
+    # Optional properties for a BonitaUser
+    USER_PROPERTIES = ['firstName','lastName','title','jobTitle']
+
     def __init__(self,username,password,membership=None,role=None,group=None,**kwargs):
         """ Build up a new BonitaUser
         
@@ -28,14 +30,18 @@ class BonitaUser(BonitaObject):
         #TODO Add other params
         # membership ou (role,group) mais ils sont exclusifs
         # Prends aussi d'autres parametres qui sont les champs d'un user dans bontia :
-        # firstname, lastname, title, jobtitle
         # professional contact : email, phone, mobiel, fax, website, apt./room, building, address, city, zipcode, state, country
         # personal contact : email, phone, mobiel, fax, website, apt./room, building, address, city, zipcode, state, country
         # other : added as metadata
         
         self.username = username
         self.password = password
-    
+
+        # Set other user properties
+        for (arg_key, arg_value) in kwargs.iteritems():
+            if arg_key in self.USER_PROPERTIES:
+                setattr(self, arg_key, arg_value)
+
     def _generate_save_url(self,variables):
         url = "/identityAPI/addUser"
         
@@ -70,45 +76,88 @@ class BonitaUser(BonitaObject):
 
             # Main properties now
             user.uuid = xml_find(user_soup,'uuid').string
-            #TODO Must first check there is a firstname and a lastName in the soup
-            #user.firstName = soup.user.firstName.text
-            #user.lastName = soup.user.lastName.text
 
-            #TODO Other properties then
+            # Other properties then
+            set_if_available(user,user_soup,cls.USER_PROPERTIES)
+
         except XMLSchemaParseError as exc:
             raise
 
         return user
-
 #<User>
-#  <dbid>0</dbid>
-#  <uuid>3f4fee49-391c-4847-ac23-b99526773b02</uuid>
-#  <firstName>John</firstName>
-#  <lastName>Doe</lastName>
-#  <password>46e490cac450e85a9cba3059365826296771cc3</password>
-#  <username>john</username>
-#  <metadata/>
+#  <manager>bed453a7-0573-47ff-9378-a7dda1b15644</manager>
+#  <delegee>75d16be7-8a37-47aa-ae3d-bbe484a1464c</delegee>
+#  <title>Mr</title>
+#  <jobTitle>Ing.</jobTitle>
+#  <professionalContactInfo class="org.ow2.bonita.facade.identity.impl.ContactInfoImpl">
+#    <email>tony.moutaux@igbmc.fr</email>
+#    <phoneNumber>0388653395</phoneNumber>
+#    <mobileNumber>0606060606</mobileNumber>
+#    <faxNumber>0388653201</faxNumber>
+#    <building>IGBMC</building>
+#    <room>0078</room>
+#    <address>1, rue Laurent Friess</address>
+#    <zipCode>67400</zipCode>
+#    <city>Illkirch-Graffenstaden</city>
+#    <state>Alsace</state>
+#    <country>France</country>
+#    <website>http://www.igbmc.fr</website>
+#  </professionalContactInfo>
+#  <personalContactInfo class="org.ow2.bonita.facade.identity.impl.ContactInfoImpl">
+#    <email>gaelle_tony.moutaux@libertysurf.fr</email>
+#    <phoneNumber>0303030303</phoneNumber>
+#    <mobileNumber>0603030303</mobileNumber>
+#    <faxNumber>0303030304</faxNumber>
+#    <building>Petite maison aprÃ¨s le pont</building>
+#    <room>Dans le toit</room>
+#    <address>6, grand rue de la Kirneck</address>
+#    <zipCode>67140</zipCode>
+#    <city>Bourgheim</city>
+#    <state>Alsace</state>
+#    <country>France</country>
+#    <website>http://renovalsace.blogspot.com</website>
+#  </personalContactInfo>
+#  <metadata>
+#    <entry>
+#      <ProfileMetadata>
+#        <dbid>0</dbid>
+#        <uuid>6da83b0d-d8dc-4a77-a89b-7e0dbd189ba6</uuid>
+#        <name>meta1</name>
+#        <label>label-meta1</label>
+#      </ProfileMetadata>
+#      <string>valeur de meta1</string>
+#    </entry>
+#  </metadata>
 #  <memberships>
 #    <Membership>
 #      <dbid>0</dbid>
-#      <uuid>ef1fc933-a95b-443e-8c30-772eb394c123</uuid>
+#      <uuid>1c5dac3a-d54c-4d94-8dad-46e7ac32720a</uuid>
 #      <role class="Role">
 #        <description>The user role</description>
 #        <dbid>0</dbid>
-#        <uuid>6a20e8a9-d703-44af-9cf6-cb2eea4ac515</uuid>
+#        <uuid>03d22c81-d41c-4b1b-b6d5-7bb944aeaea4</uuid>
 #        <name>user</name>
 #        <label>User</label>
 #      </role>
 #      <group class="Group">
-#        <description>The default group</description>
+#        <description>Responsables d&apos;entreprise pour les Services communs</description>
 #        <dbid>0</dbid>
-#        <uuid>603b07ad-7891-4843-8fda-6749a35cbd4d</uuid>
-#        <name>platform</name>
-#        <label>Platform</label>
+#        <uuid>40ea29d1-5abc-44ca-a6b1-159977e0b6d6</uuid>
+#        <name>responsables_entreprise</name>
+#        <label>responsables_entreprise</label>
+#        <parentGroup class="Group">
+#          <description>The default group : ave un texte Ã©&amp;&apos;Ã¨`-[{}$Ã¹%&amp; blabla</description>
+#          <dbid>0</dbid>
+#          <uuid>c18bb42b-2fee-4a08-9ab6-fe61d3be726e</uuid>
+#          <name>platform</name>
+#          <label>Platform</label>
+#        </parentGroup>
 #      </group>
 #    </Membership>
 #  </memberships>
 #</User>
+
+
 
     def _set_membership(self,membership):
         """ Add a user to a Membership.
@@ -408,10 +457,6 @@ class BonitaUser(BonitaObject):
 
         return users
 
-    # setter par parametre
-    # par exemple on fait :
-    # user = BonitaUser(login,pass)
-    # puis on peut faire user.firstname = 'coucou' et ca mets a jour le champs firstname directement
 
 class BonitaGroup(BonitaObject):
     """ A class to map a group in Bonita.

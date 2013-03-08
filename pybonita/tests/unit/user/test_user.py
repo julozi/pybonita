@@ -1,10 +1,101 @@
 #-*- coding: utf-8 -*-
-from nose.tools import raises
+from lxml.etree import XMLSchemaParseError
+from nose.tools import raises, assert_raises
 
 from pybonita import BonitaServer
-from pybonita.tests import TestWithMockedServer, build_dumb_bonita_error_body,\
+from pybonita.tests import TestCase, TestWithMockedServer, build_dumb_bonita_error_body,\
     build_bonita_user_xml, build_xml_set, build_xml_list
 from pybonita.user import BonitaUser, BonitaRole, BonitaGroup
+
+
+class TestConstructor(TestCase):
+    """ Test the __init__ method """
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_init_base(self):
+        """ Build a user with just base data """
+        user = BonitaUser(username=u'myusername',password=u'mypassword')
+
+        assert isinstance(user,BonitaUser)
+        assert user.username == u'myusername'
+        assert user.password == u'mypassword'
+
+    def test_init_base_and_unsupported(self):
+        """ Build a user with base data and some unsupported data """
+        user = BonitaUser(username=u'myusername',password=u'mypassword',truc=u'muche')
+
+        assert isinstance(user,BonitaUser)
+        assert user.username == u'myusername'
+        assert user.password == u'mypassword'
+        assert_raises(AttributeError, getattr,user,'truc')
+
+    def test_init_optional_data(self):
+        """ Build a user with some optional data """
+        user = BonitaUser(username=u'myusername',password=u'mypassword',
+            firstName = u'myfirstname',lastName = u'mylastname',
+            title = u'mytittle', jobTitle = u'myjobTitle')
+
+        assert isinstance(user,BonitaUser)
+        assert user.username == u'myusername'
+        assert user.password == u'mypassword'
+        assert user.firstName == u'myfirstname'
+        assert user.lastName == u'mylastname'
+        assert user.title == u'mytittle'
+        assert user.jobTitle == u'myjobTitle'
+
+
+class TestInstanciateFromXML(TestCase):
+    """ Test the _instanciate_from_xml method """
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    @raises(XMLSchemaParseError)
+    def test_invalid_xml(self):
+        """ Try to instanciate a BonitaUser from invalid XML """
+        xml = '<coucou>une valeur</coucou>'
+
+        user = BonitaUser._instanciate_from_xml(xml)
+
+    def test_user_base(self):
+        """ Instanciate a BonitaUser with base properties """
+        xml = build_bonita_user_xml('user uuid','user pass','user name')
+
+        user = BonitaUser._instanciate_from_xml(xml)
+
+        assert isinstance(user,BonitaUser)
+        assert user.uuid == u'user uuid'
+        assert user.username == u'user name'
+        assert user.password == u'user pass'
+
+    def test_user_optional(self):
+        """ Instanciate a BonitaUser with optional properties """
+        user_properties = {'firstName':u'firstname','lastName':u'lastname',
+            'title':u'title','jobTitle':u'jobtitle'}
+        xml = build_bonita_user_xml('user uuid','user pass','user name',user_properties)
+
+        user = BonitaUser._instanciate_from_xml(xml)
+
+        assert isinstance(user,BonitaUser)
+        assert user.uuid == u'user uuid'
+        assert user.username == u'user name'
+        assert user.password == u'user pass'
+        assert user.firstName == u'firstname'
+        assert user.lastName == u'lastname'
+        assert user.title == u'title'
+        assert user.jobTitle == u'jobtitle'
 
 
 class TestGetUser(TestWithMockedServer):
