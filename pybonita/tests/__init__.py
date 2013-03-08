@@ -280,7 +280,7 @@ def build_dumb_bonita_error_body(exception='',code='',message=''):
 
     return unicode(soup)
 
-def build_bonita_user_xml(uuid,password='',username=''):
+def build_bonita_user_xml(uuid,password='',username='',additional_properties = {}):
     """ Build XML for a Bonita User information """
     # Build XML body
     soup = BeautifulSoup('','xml')
@@ -296,6 +296,14 @@ def build_bonita_user_xml(uuid,password='',username=''):
 
     for tag in user_tags:
         tag_user.append(tag)
+
+    # Add additional properties
+    for (property_key, property_value) in additional_properties.iteritems():
+        # Create an additional tag
+        tag_property = soup.new_tag(property_key)
+        tag_property.string = property_value
+        # Add the new property to the User tag
+        tag_user.append(tag_property)
 
     return unicode(tag_user)
 
