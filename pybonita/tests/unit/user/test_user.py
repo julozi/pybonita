@@ -5,7 +5,7 @@ from nose.tools import raises, assert_raises
 from pybonita import BonitaServer
 from pybonita.tests import TestCase, TestWithMockedServer, build_dumb_bonita_error_body,\
     build_bonita_user_xml, build_xml_set, build_xml_list
-from pybonita.user import BonitaUser, BonitaRole, BonitaGroup
+from pybonita.user import BonitaUser, BonitaRole, BonitaGroup, BonitaMembership
 
 
 class TestConstructor(TestCase):
@@ -99,6 +99,30 @@ class TestInstanciateFromXML(TestCase):
         assert user.title == u'title'
         assert user.jobTitle == u'jobtitle'
 
+    def test_user_with_memberships(self):
+        """ Instanciate a BonitaUser with memberships """
+        role = BonitaRole('myrole','','')
+        role.uuid = '1234'
+
+        group1 = BonitaGroup('mygroup1','','')
+        group1.uuid = '2345'
+        group2 = BonitaGroup('mygroup2','','')
+        group2.uuid = '2346'
+
+        membership1 = BonitaMembership(role,group1)
+        membership1.uuid = 'uuid-12'
+        membership2 = BonitaMembership(role,group2)
+        membership2.uuid = 'uuid-13'
+
+        user_properties = {'firstName':u'firstname','lastName':u'lastname',
+            'title':u'title','jobTitle':u'jobtitle','memberships':[membership1,membership2]}
+        xml = build_bonita_user_xml('user uuid','user pass','user name',user_properties)
+
+        user = BonitaUser._instanciate_from_xml(xml)
+
+        assert isinstance(user,BonitaUser)
+        assert isinstance(user.memberships,list)
+        assert len(user.memberships) == 2
 
 class TestGetUser(TestWithMockedServer):
 

@@ -91,7 +91,6 @@ class BonitaUser(BonitaObject):
 
             # Memberships
             tag_memberships = xml_find_all(user_soup,'membership')
-            print 'tag membership(%s) : %s' % (len(tag_memberships),tag_memberships)
             for tag_membership in tag_memberships:
                 membership = BonitaMembership._instanciate_from_xml(unicode(tag_membership))
                 user._memberships.append(membership)

@@ -161,7 +161,6 @@ class TrackableList(list,TrackableMixin):
     """
 
     def __init__(self, *args, **kwargs):
-        print 'kwargs : %s' % (kwargs)
         list.__init__(self, *args, **kwargs)
         TrackableMixin.__init__(self)
 

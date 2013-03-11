@@ -252,7 +252,7 @@ def set_response_list(cls,response_list):
         response_list.add_or_augment_response_list(url,method,status,type,message)
 
 
-from pybonita.user import BonitaGroup, BonitaRole
+from pybonita.user import BonitaGroup, BonitaRole, BonitaMembership
 from pybonita.utils import xml_find
 
 def build_dumb_bonita_error_body(exception='',code='',message=''):
@@ -297,6 +297,9 @@ def build_bonita_user_xml(uuid,password='',username='',additional_properties = {
     for tag in user_tags:
         tag_user.append(tag)
 
+    # Extract memberships
+    memberships = additional_properties.pop('memberships',[])
+
     # Add additional properties
     for (property_key, property_value) in additional_properties.iteritems():
         # Create an additional tag
@@ -304,6 +307,15 @@ def build_bonita_user_xml(uuid,password='',username='',additional_properties = {
         tag_property.string = property_value
         # Add the new property to the User tag
         tag_user.append(tag_property)
+
+    # Add memberships
+    for membership in memberships:
+        tag_memberships = soup.new_tag('memberships')
+        if isinstance(membership, BonitaMembership):
+            membership_xml = build_bonita_membership_xml(membership.uuid,membership.role,membership.group)
+            membership_soup = BeautifulSoup(membership_xml,'xml')
+            tag_memberships.append(xml_find(membership_soup,'membership'))
+        tag_user.append(tag_memberships)
 
     return unicode(tag_user)
 
@@ -347,7 +359,6 @@ def build_bonita_group_xml(uuid, name, description='', label='', dbid='', parent
     tag_description.string = description
     tag_name.string = name
     tag_label.string = label
-    print 'dbid : %s (%s)' % (dbid,type(dbid))
     tag_dbid.string = dbid
     group_tags = [tag_uuid,tag_description,tag_name,tag_label,tag_dbid]
 
