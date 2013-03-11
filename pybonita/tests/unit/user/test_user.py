@@ -26,6 +26,8 @@ class TestConstructor(TestCase):
         assert isinstance(user,BonitaUser)
         assert user.username == u'myusername'
         assert user.password == u'mypassword'
+        assert isinstance(user.memberships,list)
+        assert len(user.memberships) == 0
 
     def test_init_base_and_unsupported(self):
         """ Build a user with base data and some unsupported data """

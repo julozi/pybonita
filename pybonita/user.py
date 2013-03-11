@@ -6,7 +6,8 @@ from lxml.etree import XMLSchemaParseError
 from . import logger, BonitaServer
 from .exception import BonitaHTTPError, BonitaXMLError
 from .object import BonitaObject
-from .utils import dictToMapString, set_if_available, xml_find, xml_find_all
+from .utils import dictToMapString, set_if_available, xml_find, xml_find_all,\
+    TrackableList
 
 __all__ = ['BonitaUser','BonitaGroup','BonitaRole','BonitaMembership']
 
@@ -18,7 +19,7 @@ class BonitaUser(BonitaObject):
     # Optional properties for a BonitaUser
     USER_PROPERTIES = ['firstName','lastName','title','jobTitle']
 
-    def __init__(self,username,password,membership=None,role=None,group=None,**kwargs):
+    def __init__(self,username,password,**kwargs):
         """ Build up a new BonitaUser
         
         :param username: username to use
@@ -42,6 +43,8 @@ class BonitaUser(BonitaObject):
             if arg_key in self.USER_PROPERTIES:
                 setattr(self, arg_key, arg_value)
 
+        self._memberships = TrackableList()
+
     def _generate_save_url(self,variables):
         url = "/identityAPI/addUser"
         
@@ -51,7 +54,13 @@ class BonitaUser(BonitaObject):
         data['password'] = self.password
         
         return (url,data)
-    
+
+    def _get_memberships(self):
+        """ Retrieve the memberships for a BonitaUser """
+        return self._memberships
+
+    memberships = property(_get_memberships,None,None)
+
     @classmethod
     def _instanciate_from_xml(cls, xml):
         """ Instanciate a BonitaUser from XML
@@ -80,15 +89,31 @@ class BonitaUser(BonitaObject):
             # Other properties then
             set_if_available(user,user_soup,cls.USER_PROPERTIES)
 
+            # Memberships
+            tag_memberships = xml_find_all(user_soup,'membership')
+            print 'tag membership(%s) : %s' % (len(tag_memberships),tag_memberships)
+            for tag_membership in tag_memberships:
+                membership = BonitaMembership._instanciate_from_xml(unicode(tag_membership))
+                user._memberships.append(membership)
+            # Clean the state of user._memberships
+            user._memberships.clear_state()
+
         except XMLSchemaParseError as exc:
             raise
 
         return user
+
 #<User>
+#  <dbid>0</dbid>
+# <uuid>8d3b69f2-2835-43c9-b3bc-e261b6ed9372</uuid>
+# <firstName>Tony</firstName>
+# <lastName>Moutaux</lastName>
+# <password>101e8702733cced254345e193c88aaa47a4f5de</password>
+# <username>tony.moutaux@igbmc.fr</username>
 #  <manager>bed453a7-0573-47ff-9378-a7dda1b15644</manager>
 #  <delegee>75d16be7-8a37-47aa-ae3d-bbe484a1464c</delegee>
-#  <title>Mr</title>
-#  <jobTitle>Ing.</jobTitle>
+# <title>Mr</title>
+# <jobTitle>Ing.</jobTitle>
 #  <professionalContactInfo class="org.ow2.bonita.facade.identity.impl.ContactInfoImpl">
 #    <email>tony.moutaux@igbmc.fr</email>
 #    <phoneNumber>0388653395</phoneNumber>
@@ -154,65 +179,66 @@ class BonitaUser(BonitaObject):
 #        </parentGroup>
 #      </group>
 #    </Membership>
+#    <Membership>
+#      <dbid>0</dbid>
+#      <uuid>b70d39d3-44ea-4bb0-8fae-6d285457682f</uuid>
+#      <role class="Role">
+#        <description>The admin role</description>
+#        <dbid>0</dbid>
+#        <uuid>98b4df11-9623-4c44-8c7a-c575d504439c</uuid>
+#        <name>admin</name>
+#        <label>Admin</label>
+#      </role>
+#      <group class="Group">
+#        <description>Responsables d&apos;entreprise pour les Services communs</description>
+#        <dbid>0</dbid>
+#        <uuid>40ea29d1-5abc-44ca-a6b1-159977e0b6d6</uuid>
+#        <name>responsables_entreprise</name>
+#        <label>responsables_entreprise</label>
+#        <parentGroup class="Group">
+#          <description>The default group : ave un texte Ã©&amp;&apos;Ã¨`-[{}$Ã¹%&amp; blabla</description>
+#          <dbid>0</dbid>
+#          <uuid>c18bb42b-2fee-4a08-9ab6-fe61d3be726e</uuid>
+#          <name>platform</name>
+#          <label>Platform</label>
+#        </parentGroup>
+#      </group>
+#    </Membership>
+#    <Membership>
+#      <dbid>0</dbid>
+#      <uuid>a7ee072a-77c1-4ffa-8a6f-d55fabd39a51</uuid>
+#      <role class="Role">
+#        <description>The admin role</description>
+#        <dbid>0</dbid>
+#        <uuid>98b4df11-9623-4c44-8c7a-c575d504439c</uuid>
+#        <name>admin</name>
+#        <label>Admin</label>
+#      </role>
+#      <group class="Group">
+#        <description>desc1</description>
+#        <dbid>0</dbid>
+#        <uuid>dc947b56-7f46-4aa6-9f14-d2c904e2c79c</uuid>
+#        <name>testtony</name>
+#        <label>label1</label>
+#        <parentGroup class="Group">
+#          <description>Service de genotypage</description>
+#          <dbid>0</dbid>
+#          <uuid>fc13ad9b-1666-47e4-9ec0-d18607cd35ad</uuid>
+#          <name>genotypage</name>
+#          <label>Genotypage</label>
+#          <parentGroup class="Group">
+#            <description>The default group : ave un texte Ã©&amp;&apos;Ã¨`-[{}$Ã¹%&amp; blabla</description>
+#            <dbid>0</dbid>
+#            <uuid>c18bb42b-2fee-4a08-9ab6-fe61d3be726e</uuid>
+#            <name>platform</name>
+#            <label>Platform</label>
+#          </parentGroup>
+#        </parentGroup>
+#      </group>
+#    </Membership>
 #  </memberships>
 #</User>
 
-
-
-    def _set_membership(self,membership):
-        """ Add a user to a Membership.
-        
-        :param membership: the membership to add the user in
-        :type membership: BonitaMembership
-        :raise Exception: if provided data does not lead to something on the BonitaServer (unknown role for ex.)
-        
-        """
-        url = "/identityAPI/addMembershipToUser/"+self.uuid+"/"+membership.uuid
-        
-        try:
-            response = BonitaServer.get_instance().sendRESTRequest(url=url)
-        except Exception:
-            print 'Exception'
-    
-    
-    membership = property(None,_set_membership,None)
-    
-#    def _set_membership(self,membership=None,role=None,group=None):
-#        """ Add a user to a Membership.
-#        You should define membership or at least role and group.
-#        
-#        :param membership:
-#        :type membership:
-#        :param role:
-#        :type role:
-#        :param group:
-#        :type group:
-#        :raise Exception: if no data is provided
-#        :raise Exception: if provided data does not lead to something on the BonitaServer (unknown role for ex.)
-#        
-#        """
-#        pass
-
-    
-    def set_manager(self,user):
-        """ Define the Manager of a user 
-        
-        :param user: the manager to set with
-        :type user: BonitaUser
-        :raise ValueError: manager user is unknown in BonitaServer
-
-        """
-        pass
-    
-    def set_delegee(self,user):
-        """ Define the Delegee of a user 
-        
-        :param user: the delegee to set with
-        :type user: BonitaUser
-        :raise ValueError: delegee user is unknown in BonitaServer
-        """
-        pass
-    
     @classmethod
     def get_by_username(cls,username):
         """ Retrieve a User with the username
@@ -810,6 +836,34 @@ class BonitaMembership(BonitaObject):
             raise
 
         return new_membership
+
+#<Membership>
+#  <dbid>0</dbid>
+#  <uuid>1c5dac3a-d54c-4d94-8dad-46e7ac32720a</uuid>
+#  <role class="Role">
+#    <description>The user role</description>
+#    <dbid>0</dbid>
+#    <uuid>03d22c81-d41c-4b1b-b6d5-7bb944aeaea4</uuid>
+#    <name>user</name>
+#    <label>User</label>
+#  </role>
+#  <group class="Group">
+#    <description>Responsables d&apos;entreprise pour les Services communs</description>
+#    <dbid>0</dbid>
+#    <uuid>40ea29d1-5abc-44ca-a6b1-159977e0b6d6</uuid>
+#    <name>responsables_entreprise</name>
+#    <label>responsables_entreprise</label>
+#    <parentGroup class="Group">
+#      <description>The default group : ave un texte Ã©&amp;&apos;Ã¨`-[{}$Ã¹%&amp; blabla</description>
+#      <dbid>0</dbid>
+#      <uuid>c18bb42b-2fee-4a08-9ab6-fe61d3be726e</uuid>
+#      <name>platform</name>
+#      <label>Platform</label>
+#    </parentGroup>
+#  </group>
+#</Membership>
+
+
 
     @classmethod
     def get_by_role_and_group_uuid(cls,role_uuid,group_uuid):

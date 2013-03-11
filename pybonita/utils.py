@@ -4,7 +4,8 @@ from xml.dom.minidom import Document
 
 from lxml.etree import XMLSchemaParseError
 
-__all__ = ['dictToMapString','set_if_available','xml_find','xml_find_all']
+__all__ = ['dictToMapString','set_if_available','xml_find','xml_find_all',
+    'TrackableList']
 
 def dictToMapString(data_dict):
 
@@ -101,3 +102,93 @@ def xml_find_all(soup,name):
     tags = soup.find_all({base_name:True, capitalize_name:True})
 
     return(tags)
+
+
+class TrackableMixin(object):
+    """ A mixin to track modification of object.
+
+    Derived class set the state with _set_modified, _set_unchanged and clear.
+    Upper class only gets the state with is_modified or is_unchanged.
+
+    """
+
+    class Enum(set):
+        def __getattr__(self, name):
+            if name in self:
+                return name
+            raise AttributeError
+
+    STATES = Enum(['UNCHANGED', 'MODIFIED'])
+
+    def __init__(self,state=None):
+        """ Set the object to the given state, default to unchanged """
+        self._state = state if state is not None else self.STATES.UNCHANGED
+
+    def clear_state(self):
+        """ Clear object state """
+        self._state = self.STATES.UNCHANGED
+
+    def _get_is_modified(self):
+        """ Get if object has been modified """
+        return self._state == self.STATES.MODIFIED
+
+    def _get_is_unchanged(self):
+        """ Get if object is unchanged """
+        return self._state == self.STATES.UNCHANGED
+
+    def _set_modified(self):
+        """ Set the object as modified """
+        self._state = self.STATES.MODIFIED
+
+    def _set_unchanged(self):
+        """ Set the object is unchanged """
+        self._state = self.STATES.UNCHANGED
+
+    is_modified = property(_get_is_modified,None,None)
+    is_unchanged = property(_get_is_unchanged,None,None)
+
+
+class TrackableList(list,TrackableMixin):
+    """ A List with tracked changes
+
+    Example
+.. code ::
+
+    tl = TracklableList(['a','b']) # tl.is_modified == False
+    tl.append('c') # tl.is_modified == True
+    tl.clear_state() # tl.is_modified == False
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        print 'kwargs : %s' % (kwargs)
+        list.__init__(self, *args, **kwargs)
+        TrackableMixin.__init__(self)
+
+    def append(self,obj):
+        self._set_modified()
+        super(TrackableList,self).append(obj)
+
+    def extend(self,iterable):
+        self._set_modified()
+        super(TrackableList,self).extend(iterable)
+
+    def insert(self,obj):
+        self._set_modified()
+        super(TrackableList,self).insert(obj)
+
+    def pop(self,index):
+        self._set_modified()
+        return super(TrackableList,self).pop(index)
+
+    def remove(self,value):
+        self._set_modified()
+        super(TrackableList,self).remove(value)
+
+    def reverse(self):
+        self._set_modified()
+        super(TrackableList,self).reverse()
+
+    def sort(self,cmp=None, key=None, reverse=False):
+        self._set_modified()
+        super(TrackableList,self).sort(cmp,key,reverse)
