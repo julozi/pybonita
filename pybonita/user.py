@@ -3,38 +3,41 @@
 from bs4 import BeautifulSoup
 from lxml.etree import XMLSchemaParseError
 
-from . import logger, BonitaServer
+from . import BonitaServer
 from .exception import BonitaHTTPError, BonitaXMLError
 from .object import BonitaObject
-from .utils import dictToMapString, set_if_available, xml_find, xml_find_all,\
+from .utils import set_if_available, xml_find, xml_find_all,\
     TrackableList
 
-__all__ = ['BonitaUser','BonitaGroup','BonitaRole','BonitaMembership']
+__all__ = ['BonitaUser', 'BonitaGroup', 'BonitaRole', 'BonitaMembership']
 
 
 class BonitaUser(BonitaObject):
     """ A class to map a user in Bonita.
-    
+
     """
     # Optional properties for a BonitaUser
-    USER_PROPERTIES = ['firstName','lastName','title','jobTitle']
+    USER_PROPERTIES = ['firstName', 'lastName', 'title', 'jobTitle']
 
-    def __init__(self,username,password,**kwargs):
+    def __init__(self, username, password, **kwargs):
         """ Build up a new BonitaUser
-        
+
         :param username: username to use
         :type username: str
         :param password: password to set
         :type password: str
-        
+
         """
-        #TODO Add other params
+        # TODO Add other params
         # membership ou (role,group) mais ils sont exclusifs
-        # Prends aussi d'autres parametres qui sont les champs d'un user dans bontia :
-        # professional contact : email, phone, mobiel, fax, website, apt./room, building, address, city, zipcode, state, country
-        # personal contact : email, phone, mobiel, fax, website, apt./room, building, address, city, zipcode, state, country
+        # Prends aussi d'autres parametres qui sont les champs d'un user dans
+        # bontia :
+        # professional contact : email, phone, mobiel, fax, website, apt./room,
+        # building, address, city, zipcode, state, country
+        # personal contact : email, phone, mobiel, fax, website, apt./room,
+        # building, address, city, zipcode, state, country
         # other : added as metadata
-        
+
         self.username = username
         self.password = password
 
@@ -45,59 +48,51 @@ class BonitaUser(BonitaObject):
 
         self._memberships = TrackableList()
 
-    def _generate_save_url(self,variables):
-        url = "/identityAPI/addUser"
-        
-        data = dict()
-        
-        data['username'] = self.username
-        data['password'] = self.password
-        
-        return (url,data)
-
     def _get_memberships(self):
         """ Retrieve the memberships for a BonitaUser """
         return self._memberships
 
-    memberships = property(_get_memberships,None,None)
+    memberships = property(_get_memberships, None, None)
 
     @classmethod
     def _instanciate_from_xml(cls, xml):
         """ Instanciate a BonitaUser from XML
-        
+
         :param xml: the XML description of a user
         :type xml: unicode
         :return: BonitaUser
-        :raise lxml.etree.XMLSchemaParseError: given XML does not belong to Bonita XML schema for User
-        
-        """
-        if not isinstance(xml,(str,unicode)):
-            raise TypeError('xml must be a string or unicode not %s' % (type(xml)))
+        :raise lxml.etree.XMLSchemaParseError: given XML does not belong to
+            Bonita XML schema for User
 
-        soup = BeautifulSoup(xml,'xml')
+        """
+        if not isinstance(xml, (str, unicode)):
+            raise TypeError('xml must be a string or unicode not %s' %
+                        (type(xml)))
+
+        soup = BeautifulSoup(xml, 'xml')
 
         try:
             # First thing first : instanciate a new BonitaUser with username and password
-            user_soup = xml_find(soup,'user')
-            username = xml_find(user_soup,'username').string
-            password = xml_find(user_soup,'password').string
-            user = BonitaUser(username,password)
+            user_soup = xml_find(soup, 'user')
+            username = xml_find(user_soup, 'username').string
+            password = xml_find(user_soup, 'password').string
+            user = BonitaUser(username, password)
 
             # Main properties now
-            user.uuid = xml_find(user_soup,'uuid').string
+            user.uuid = xml_find(user_soup, 'uuid').string
 
             # Other properties then
-            set_if_available(user,user_soup,cls.USER_PROPERTIES)
+            set_if_available(user, user_soup, cls.USER_PROPERTIES)
 
             # Memberships
-            tag_memberships = xml_find_all(user_soup,'membership')
+            tag_memberships = xml_find_all(user_soup, 'membership')
             for tag_membership in tag_memberships:
                 membership = BonitaMembership._instanciate_from_xml(unicode(tag_membership))
                 user._memberships.append(membership)
             # Clean the state of user._memberships
             user._memberships.clear_state()
 
-        except XMLSchemaParseError as exc:
+        except XMLSchemaParseError:
             raise
 
         return user
@@ -238,15 +233,37 @@ class BonitaUser(BonitaObject):
 #  </memberships>
 #</User>
 
+    def save(self, user=None, variables=None):
+        """ Save a BonitaUserg : sends data to create a BonitaUser on the server.
+        It also create all associated resources, like BonitaMembership.
+
+        """
+        url = "/identityAPI/addUser"
+
+        data = dict()
+
+        data['username'] = self.username
+        data['password'] = self.password
+
+        # Call the BonitaServer
+        xml = BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
+
+        # Extract UUID of newly created object
+        soup = BeautifulSoup(xml, 'xml')
+        instances = soup.findAll("uuid")
+        if len(instances) != 1:
+            raise Exception  # fixme: raise clear Exception
+        self.uuid = instances[0].text
+
     @classmethod
-    def get_by_username(cls,username):
+    def get_by_username(cls, username):
         """ Retrieve a User with the username
 
         :param username: the username of the user to retrieve
         :type username: str
 
         """
-        url = '/identityAPI/getUser/'+username
+        url = '/identityAPI/getUser/' + username
 
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -256,20 +273,19 @@ class BonitaUser(BonitaObject):
             else:
                 raise
 
-
         user = cls._instanciate_from_xml(xml)
 
         return user
 
     @classmethod
-    def get_by_uuid(cls,uuid):
-        """ Retrieve a User with the UUID 
+    def get_by_uuid(cls, uuid):
+        """ Retrieve a User with the UUID
 
         :param uuid: the UUID of the user to retrieve
         :type uuid: str
 
         """
-        url = '/identityAPI/getUserByUUID/'+uuid
+        url = '/identityAPI/getUserByUUID/' + uuid
 
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -279,13 +295,12 @@ class BonitaUser(BonitaObject):
             else:
                 raise
 
-
         user = cls._instanciate_from_xml(xml)
 
         return user
 
     @classmethod
-    def get(cls,**kwargs):
+    def get(cls, **kwargs):
         """ Retrieve a User with given parameter
 
         Parameter can be any of :
@@ -301,11 +316,11 @@ class BonitaUser(BonitaObject):
             return cls.get_by_username(username=kwargs['username'])
         if 'uuid' in kwargs:
             return cls.get_by_uuid(uuid=kwargs['uuid'])
-        
+
         raise TypeError('called get_user with unknown param : %s' % (kwargs.keys()))
-    
+
     @classmethod
-    def find(cls,**kwargs):
+    def find(cls, **kwargs):
         """ Retrieve a list of User with given parameter
 
         If no parameter, retrieve all users in server.
@@ -323,7 +338,7 @@ class BonitaUser(BonitaObject):
             # Get all Users
             return cls.find_all()
         elif 'role' in kwargs and 'group' in kwargs:
-            return cls.find_by_role_and_group(role=kwargs['role'],group=kwargs['group'])
+            return cls.find_by_role_and_group(role=kwargs['role'], group=kwargs['group'])
         elif 'role' in kwargs:
             return cls.find_by_role(kwargs['role'])
         elif 'group' in kwargs:
@@ -346,19 +361,19 @@ class BonitaUser(BonitaObject):
             raise
 
         # Decode the XML response
-        soup = BeautifulSoup(xml,'xml')
+        soup = BeautifulSoup(xml, 'xml')
 
         users = []
         try:
             # Get the set of Users
-            set_soup = xml_find(soup,'set')
+            set_soup = xml_find(soup, 'set')
 
-            users_tag = xml_find_all(set_soup,'user')
+            users_tag = xml_find_all(set_soup, 'user')
             for user_tag in users_tag:
                 user = BonitaUser._instanciate_from_xml(unicode(user_tag))
                 users.append(user)
 
-        except XMLSchemaParseError as exc:
+        except XMLSchemaParseError:
             raise
 
         return users
@@ -373,10 +388,10 @@ class BonitaUser(BonitaObject):
         :raise TypeError: if role not an instance of BonitaRole
 
         """
-        if not isinstance(role,BonitaRole):
+        if not isinstance(role, BonitaRole):
             raise TypeError('role must be a BonitaRole instance')
 
-        url = "/identityAPI/getAllUsersInRole/"+role.uuid
+        url = "/identityAPI/getAllUsersInRole/" + role.uuid
 
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -384,19 +399,19 @@ class BonitaUser(BonitaObject):
             raise
 
         # Decode the XML response
-        soup = BeautifulSoup(xml,'xml')
+        soup = BeautifulSoup(xml, 'xml')
 
         users = []
         try:
             # Get the list of Users
-            list_soup = xml_find(soup,'list')
+            list_soup = xml_find(soup, 'list')
 
-            users_tag = xml_find_all(list_soup,'user')
+            users_tag = xml_find_all(list_soup, 'user')
             for user_tag in users_tag:
                 user = BonitaUser._instanciate_from_xml(unicode(user_tag))
                 users.append(user)
 
-        except XMLSchemaParseError as exc:
+        except XMLSchemaParseError:
             raise
 
         return users
@@ -411,10 +426,10 @@ class BonitaUser(BonitaObject):
         :raise TypeError: if group not an instance of BonitaRole
 
         """
-        if not isinstance(group,BonitaGroup):
+        if not isinstance(group, BonitaGroup):
             raise TypeError('group must be a BonitaGroup instance')
 
-        url = "/identityAPI/getAllUsersInGroup/"+group.uuid
+        url = "/identityAPI/getAllUsersInGroup/" + group.uuid
 
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -422,19 +437,19 @@ class BonitaUser(BonitaObject):
             raise
 
         # Decode the XML response
-        soup = BeautifulSoup(xml,'xml')
+        soup = BeautifulSoup(xml, 'xml')
 
         users = []
         try:
             # Get the list of Users
-            list_soup = xml_find(soup,'list')
+            list_soup = xml_find(soup, 'list')
 
-            users_tag = xml_find_all(list_soup,'user')
+            users_tag = xml_find_all(list_soup, 'user')
             for user_tag in users_tag:
                 user = BonitaUser._instanciate_from_xml(unicode(user_tag))
                 users.append(user)
 
-        except XMLSchemaParseError as exc:
+        except XMLSchemaParseError:
             raise
 
         return users
@@ -451,13 +466,12 @@ class BonitaUser(BonitaObject):
         :raise TypeError: if group/role not an instance of BonitaGroup/BonitaRole
 
         """
-        if not isinstance(group,BonitaGroup):
+        if not isinstance(group, BonitaGroup):
             raise TypeError('group must be a BonitaGroup instance')
-        if not isinstance(role,BonitaRole):
+        if not isinstance(role, BonitaRole):
             raise TypeError('role must be a BonitaRole instance')
 
-
-        url = "/identityAPI/getAllUsersInRoleAndGroup/"+role.uuid+"/"+group.uuid
+        url = "/identityAPI/getAllUsersInRoleAndGroup/" + role.uuid + "/" + group.uuid
 
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -465,19 +479,19 @@ class BonitaUser(BonitaObject):
             raise
 
         # Decode the XML response
-        soup = BeautifulSoup(xml,'xml')
+        soup = BeautifulSoup(xml, 'xml')
 
         users = []
         try:
             # Get the list of Users
-            list_soup = xml_find(soup,'list')
+            list_soup = xml_find(soup, 'list')
 
-            users_tag = xml_find_all(list_soup,'user')
+            users_tag = xml_find_all(list_soup, 'user')
             for user_tag in users_tag:
                 user = BonitaUser._instanciate_from_xml(unicode(user_tag))
                 users.append(user)
 
-        except XMLSchemaParseError as exc:
+        except XMLSchemaParseError:
             raise
 
         return users
@@ -485,12 +499,12 @@ class BonitaUser(BonitaObject):
 
 class BonitaGroup(BonitaObject):
     """ A class to map a group in Bonita.
-    
+
     """
-    
-    def __init__(self,name,label,description,parent=None):
+
+    def __init__(self, name, label, description, parent=None):
         """ Build up a new BonitaGroup
-        
+
         :param name: Name of the group
         :type name: str
         :param label: Label of the group
@@ -499,13 +513,13 @@ class BonitaGroup(BonitaObject):
         :type description: str
         :param parent: Parent of the group, default to root ('/')
         :type parent: BonitaGroup
-        
+
         """
         self.name = name
         self.label = label
         self.description = description
 
-        if parent != None and not isinstance(parent,BonitaGroup):
+        if parent != None and not isinstance(parent, BonitaGroup):
             raise TypeError('parent must be None or a BonitaGroup')
 
         self.parent = parent
@@ -513,49 +527,49 @@ class BonitaGroup(BonitaObject):
     @classmethod
     def _instanciate_from_xml(cls, xml, is_parent=False):
         """ Instanciate a BonitaGroup from XML
-        
+
         :param xml: the XML description of a group
         :type xml: unicode
         :param is_parent: State that the XML provided describe a parent Group (default False)
         :type is_parent: bool
         :return: BonitaGroup
-        
+
         """
-        if not isinstance(xml,(str,unicode)):
+        if not isinstance(xml, (str, unicode)):
             raise TypeError('xml must be a string or unicode not %s' % (type(xml)))
 
-        soup = BeautifulSoup(xml,'xml')
+        soup = BeautifulSoup(xml, 'xml')
 
         try:
             # First thing first : instanciate a new BonitaGroup
-            group_soup = xml_find(soup,'parentGroup') if is_parent else xml_find(soup,'group')
-        except XMLSchemaParseError as exc:
+            group_soup = xml_find(soup, 'parentGroup') if is_parent else xml_find(soup, 'group')
+        except XMLSchemaParseError:
                 raise BonitaXMLError('xml does not seem to be for a Group')
 
         try:
-            description = xml_find(group_soup,'description').string
-            name = xml_find(group_soup,'name').string
-            label = xml_find(group_soup,'label').string
+            description = xml_find(group_soup, 'description').string
+            name = xml_find(group_soup, 'name').string
+            label = xml_find(group_soup, 'label').string
 
-            new_group = BonitaGroup(name,label,description)
+            new_group = BonitaGroup(name, label, description)
 
             # Main properties now
-            new_group.uuid = xml_find(group_soup,'uuid').string
+            new_group.uuid = xml_find(group_soup, 'uuid').string
 
             # Other properties then
-            set_if_available(new_group,group_soup,['dbid'])
+            set_if_available(new_group, group_soup, ['dbid'])
 
             # Parent hierarchy
-            parent_soup = xml_find(group_soup,'parentGroup',raise_exception=False)
+            parent_soup = xml_find(group_soup, 'parentGroup', raise_exception=False)
             if parent_soup is not None:
-                new_group.parent = cls._instanciate_from_xml(unicode(parent_soup),is_parent=True)
-        except XMLSchemaParseError as exc:
+                new_group.parent = cls._instanciate_from_xml(unicode(parent_soup), is_parent=True)
+        except XMLSchemaParseError:
             raise
 
         return new_group
 
     @classmethod
-    def get_by_path(cls,path):
+    def get_by_path(cls, path):
         """ Retrieve a Group with the path
 
         :param path: the path of the group to retrieve
@@ -573,7 +587,7 @@ class BonitaGroup(BonitaObject):
             data['hierarchy'].append(part_path)
 
         try:
-            xml = BonitaServer.get_instance().sendRESTRequest(url=url,data=data)
+            xml = BonitaServer.get_instance().sendRESTRequest(url=url, data=data)
         except BonitaHTTPError as err:
             if 'GroupNotFoundException'.lower() in err.bonita_exception.lower():
                 return None
@@ -585,14 +599,14 @@ class BonitaGroup(BonitaObject):
         return group
 
     @classmethod
-    def get_by_uuid(cls,uuid):
-        """ Retrieve a Group with the UUID 
+    def get_by_uuid(cls, uuid):
+        """ Retrieve a Group with the UUID
 
         :param uuid: the UUID of the group to retrieve
         :type uuid: str
 
         """
-        url = '/identityAPI/getGroupByUUID/'+uuid
+        url = '/identityAPI/getGroupByUUID/' + uuid
 
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -607,7 +621,7 @@ class BonitaGroup(BonitaObject):
         return group
 
     @classmethod
-    def get(cls,**kwargs):
+    def get(cls, **kwargs):
         """  Retrieve a Group with given parameter
 
         Parameter can be any of :
@@ -623,7 +637,7 @@ class BonitaGroup(BonitaObject):
             return cls.get_by_path(path=kwargs['path'])
         if 'uuid' in kwargs:
             return cls.get_by_uuid(uuid=kwargs['uuid'])
-        
+
         raise TypeError('called get with unknown param : %s' % (kwargs.keys()))
 
     @classmethod
@@ -637,19 +651,19 @@ class BonitaGroup(BonitaObject):
 
 class BonitaRole(BonitaObject):
     """ A class to map a role in Bonita.
-    
+
     """
-    
-    def __init__(self,name,label,description):
+
+    def __init__(self, name, label, description):
         """ Build up a new BonitaRole
-        
+
         :param name: name of the role
         :type name: str or unicode
         :param label: label of the role
         :type label: str or unicode
         :param description: description of the role
         :type description: str or unicode
-        
+
         """
         self.name = name
         self.label = label
@@ -658,47 +672,47 @@ class BonitaRole(BonitaObject):
     @classmethod
     def _instanciate_from_xml(cls, xml):
         """ Instanciate a BonitaRole from XML
-        
+
         :param xml: the XML description of a rpme
         :type xml: unicode
         :return: BonitaRole
-        
+
         """
-        if not isinstance(xml,(str,unicode)):
+        if not isinstance(xml, (str, unicode)):
             raise TypeError('xml must be a string or unicode not %s' % (type(xml)))
 
-        soup = BeautifulSoup(xml,'xml')
+        soup = BeautifulSoup(xml, 'xml')
 
         try:
             # First thing first : instanciate a new BonitaRole
-            role_soup = xml_find(soup,'role')
+            role_soup = xml_find(soup, 'role')
 
-            description = xml_find(role_soup,'description').string
-            name = xml_find(role_soup,'name').string
-            label = xml_find(role_soup,'label').string
+            description = xml_find(role_soup, 'description').string
+            name = xml_find(role_soup, 'name').string
+            label = xml_find(role_soup, 'label').string
 
-            new_role = BonitaRole(name,label,description)
+            new_role = BonitaRole(name, label, description)
 
             # Main properties now
-            new_role.uuid = xml_find(role_soup,'uuid').string
+            new_role.uuid = xml_find(role_soup, 'uuid').string
 
             # Other properties then
-            set_if_available(new_role,role_soup,['dbid'])
+            set_if_available(new_role, role_soup, ['dbid'])
 
-        except XMLSchemaParseError as exc:
+        except XMLSchemaParseError:
             raise
 
         return new_role
 
     @classmethod
-    def get_by_name(cls,name):
+    def get_by_name(cls, name):
         """ Retrieve a Role with the name
 
         :param path: the name of the role to retrieve
         :type path: str
 
         """
-        url = '/identityAPI/getRole/'+name
+        url = '/identityAPI/getRole/' + name
 
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -713,14 +727,14 @@ class BonitaRole(BonitaObject):
         return role
 
     @classmethod
-    def get_by_uuid(cls,uuid):
-        """ Retrieve a Role with the UUID 
+    def get_by_uuid(cls, uuid):
+        """ Retrieve a Role with the UUID
 
         :param uuid: the UUID of the role to retrieve
         :type uuid: str
 
         """
-        url = '/identityAPI/getRoleByUUID/'+uuid
+        url = '/identityAPI/getRoleByUUID/' + uuid
 
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -735,7 +749,7 @@ class BonitaRole(BonitaObject):
         return role
 
     @classmethod
-    def get(cls,**kwargs):
+    def get(cls, **kwargs):
         """  Retrieve a Role with given parameter
 
         Parameter can be any of :
@@ -751,30 +765,29 @@ class BonitaRole(BonitaObject):
             return cls.get_by_name(name=kwargs['name'])
         if 'uuid' in kwargs:
             return cls.get_by_uuid(uuid=kwargs['uuid'])
-        
-        raise TypeError('called get with unknown param : %s' % (kwargs.keys()))
 
+        raise TypeError('called get with unknown param : %s' % (kwargs.keys()))
 
 
 #    def _generate_save_url(self,variables):
 #        url = "/identityAPI/addRole/"+self.name
 #        data = None
-#        
+#
 #        return (url,data)
-#    
+#
 #    def _generate_delete_url(self,variables):
 #        url = "/identityAPI/removeRole/"+self.name
 #        data = None
-#        
+#
 #        return (url,data)
-#    
+#
 
 class BonitaMembership(BonitaObject):
     """ A class to map a membership in Bonita.
-    
+
     """
 
-    def __init__(self,role,group):
+    def __init__(self, role, group):
         """ Build up a new BonitaMembership
 
         :param role: the role bound to this membership
@@ -785,9 +798,9 @@ class BonitaMembership(BonitaObject):
         :raise TypeError: if group is not a BonitaGroup instance
 
         """
-        if not isinstance(role,BonitaRole):
+        if not isinstance(role, BonitaRole):
             raise TypeError('role must be a BonitaRole instance')
-        if not isinstance(group,BonitaGroup):
+        if not isinstance(group, BonitaGroup):
             raise TypeError('group must be a BonitaGroup instance')
 
         self.role = role
@@ -796,41 +809,41 @@ class BonitaMembership(BonitaObject):
     @classmethod
     def _instanciate_from_xml(cls, xml):
         """ Instanciate a BonitaMembership from XML
-        
+
         :param xml: the XML description of a rpme
         :type xml: unicode
         :return: BonitaMembership
         :raise BonitaException: if group or role can't be instanciate from XML
-        
+
         """
-        if not isinstance(xml,(str,unicode)):
+        if not isinstance(xml, (str, unicode)):
             raise TypeError('xml must be a string or unicode not %s' % (type(xml)))
 
-        soup = BeautifulSoup(xml,'xml')
+        soup = BeautifulSoup(xml, 'xml')
 
         try:
-            membership_soup = xml_find(soup,'membership')
+            membership_soup = xml_find(soup, 'membership')
 
             # First try to decode Role and Group
             try:
-                group_soup = xml_find(membership_soup,'group')
+                group_soup = xml_find(membership_soup, 'group')
                 group = BonitaGroup._instanciate_from_xml(unicode(group_soup))
-            except XMLSchemaParseError as exc:
+            except XMLSchemaParseError:
                 raise BonitaXMLError('can\'t properly creat a group from XML')
 
             try:
-                role_soup = xml_find(membership_soup,'role')
+                role_soup = xml_find(membership_soup, 'role')
                 role = BonitaRole._instanciate_from_xml(unicode(role_soup))
-            except XMLSchemaParseError as axc:
+            except XMLSchemaParseError:
                 raise BonitaXMLError('can\'t properly creat a role from XML')
 
-            new_membership = BonitaMembership(role,group)
+            new_membership = BonitaMembership(role, group)
 
             # Main properties now
-            new_membership.uuid = xml_find(membership_soup,'uuid').string
+            new_membership.uuid = xml_find(membership_soup, 'uuid').string
 
             # Other properties then
-            set_if_available(new_membership,membership_soup,['dbid'])
+            set_if_available(new_membership, membership_soup, ['dbid'])
         except:
             raise
 
@@ -862,10 +875,8 @@ class BonitaMembership(BonitaObject):
 #  </group>
 #</Membership>
 
-
-
     @classmethod
-    def get_by_role_and_group_uuid(cls,role_uuid,group_uuid):
+    def get_by_role_and_group_uuid(cls, role_uuid, group_uuid):
         """ Retrieve a Membership with the role and group UUID.
         If membership does not exists but role and group exist, the membership will be created
 
@@ -875,13 +886,13 @@ class BonitaMembership(BonitaObject):
         :type group_uuid: str or unicode
 
         """
-        url = '/identityAPI/getMembershipForRoleAndGroup/'+role_uuid+'/'+group_uuid
+        url = '/identityAPI/getMembershipForRoleAndGroup/' + role_uuid + '/' + group_uuid
 
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
         except BonitaHTTPError as err:
             if ('RoleNotFoundException'.lower() in err.bonita_exception.lower() or
-                'GroupNotFoundException'.lower() in err.bonita_exception.lower() ):
+                'GroupNotFoundException'.lower() in err.bonita_exception.lower()):
                 return None
             else:
                 raise
@@ -891,7 +902,7 @@ class BonitaMembership(BonitaObject):
         return membership
 
     @classmethod
-    def get_by_role_and_group(cls,role,group):
+    def get_by_role_and_group(cls, role, group):
         """ Retrieve a Membership with the role and group.
         If membership does not exists but role and group exist, the membership will be created
 
@@ -901,18 +912,18 @@ class BonitaMembership(BonitaObject):
         :type group: BonitaGroup
 
         """
-        if not isinstance(role,BonitaRole):
+        if not isinstance(role, BonitaRole):
             raise TypeError('role must be a BonitaRole instance')
         if not isinstance(group, BonitaGroup):
             raise TypeError('group must be a BonitaGroup')
 
-        url = '/identityAPI/getMembershipForRoleAndGroup/'+role.uuid+'/'+group.uuid
+        url = '/identityAPI/getMembershipForRoleAndGroup/' + role.uuid + '/' + group.uuid
 
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
         except BonitaHTTPError as err:
             if ('RoleNotFoundException'.lower() in err.bonita_exception.lower() or
-                'GroupNotFoundException'.lower() in err.bonita_exception.lower() ):
+                'GroupNotFoundException'.lower() in err.bonita_exception.lower()):
                 return None
             else:
                 raise
@@ -922,14 +933,14 @@ class BonitaMembership(BonitaObject):
         return membership
 
     @classmethod
-    def get_by_uuid(cls,uuid):
-        """ Retrieve a Membership with the UUID 
+    def get_by_uuid(cls, uuid):
+        """ Retrieve a Membership with the UUID
 
         :param uuid: the UUID of the membership to retrieve
         :type uuid: str
 
         """
-        url = '/identityAPI/getMembershipByUUID/'+uuid
+        url = '/identityAPI/getMembershipByUUID/' + uuid
 
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
@@ -944,7 +955,7 @@ class BonitaMembership(BonitaObject):
         return membership
 
     @classmethod
-    def get(cls,**kwargs):
+    def get(cls, **kwargs):
         """  Retrieve a Membership with given parameter
 
         Parameter can be any of :
@@ -958,12 +969,10 @@ class BonitaMembership(BonitaObject):
 
         """
         if 'role' in kwargs and 'group' in kwargs:
-                return cls.get_by_role_and_group(role=kwargs['role'],group=kwargs['group'])
+                return cls.get_by_role_and_group(role=kwargs['role'], group=kwargs['group'])
         if 'role_uuid' in kwargs and 'group_uuid' in kwargs:
-                return cls.get_by_role_and_group_uuid(role_uuid=kwargs['role_uuid'],group_uuid=kwargs['group_uuid'])
+                return cls.get_by_role_and_group_uuid(role_uuid=kwargs['role_uuid'], group_uuid=kwargs['group_uuid'])
         if 'uuid' in kwargs:
             return cls.get_by_uuid(uuid=kwargs['uuid'])
-        
+
         raise TypeError('called get with unknown param : %s' % (kwargs.keys()))
-
-
