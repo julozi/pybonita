@@ -1,5 +1,5 @@
 #-*- coding: utf-8 -*-
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 from unittest import TestCase
 
 __all__ = ['TestWithBonitaServer','TestWithMockedServer',
@@ -50,17 +50,16 @@ class BonitaMockedServerImpl(object):
 
         """
         import re
-        from requests import codes
         from pybonita.exception import BonitaHTTPError
 
         (status, content_type, data) = self.__class__.extract_response(url,'POST')
 
-        if status != str(codes.ok):
+        if int(status)/100 != 2:
             soup = BeautifulSoup(data,'xml')
             if soup == None:
                 raise Exception('data : %s[%s] and can\'t build soup with that' % (str(data),type(data)))
             soup_exception = soup.find(name=re.compile("Exception"))
-            bonita_exception = soup_exception.name
+            bonita_exception = soup_exception.name if 'name' in dir(soup_exception) else unicode(soup_exception)
             message = soup.detailmessage.string if soup.detailmessage is not None else ''
             code = soup.errorCode
             raise BonitaHTTPError(bonita_exception,code,message)

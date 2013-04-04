@@ -38,6 +38,9 @@ class BonitaUser(BonitaObject, TrackableObject):
         # building, address, city, zipcode, state, country
         # other : added as metadata
 
+        TrackableObject.__init__(self, **kwargs)
+
+        self._uuid = None
         self.username = username
         self.password = password
 
@@ -250,6 +253,18 @@ class BonitaUser(BonitaObject, TrackableObject):
         if self.is_unchanged:
             return
 
+        # Is this a new user ?
+        if self.uuid is None:
+            self._create_user(user=user)
+
+        # Now we can deal with all other attributes
+        pass
+
+    def _create_user(self, user=None):
+        """ Create a new BonitaUser.
+        This method will set the username, password and uuid attributes.
+
+        """
         url = "/identityAPI/addUser"
 
         data = dict()
@@ -269,6 +284,21 @@ class BonitaUser(BonitaObject, TrackableObject):
 
         # Mark as cleared of modification
         self.clear_state()
+
+    def _update_user(self, user=None):
+        # for membership
+        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/setUserMemberships/%7BuserUUID%7D/index.html
+        # for roles
+        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/setUserRoles/%7Busername%7D/index.html
+        # lastname, title, username, firstname, jobtitle
+        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserByUUID/index.html
+        # password
+        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserPassword/index.html
+        # personal contact infos
+        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserPersonalContactInfo/index.html#POST
+        # professional contact infos
+        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserProfessionalContactInfo/index.html
+        pass
 
     @classmethod
     def get_by_username(cls, username):

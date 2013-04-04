@@ -185,11 +185,22 @@ class TrackableList(list, TrackableMixin):
 
 
 class TrackableObject(TrackableMixin):
-    """ A class that tracks attribute modification """
+    """ A class that tracks attributes modification """
+
+    def __init__(self, *args, **kwargs):
+        TrackableMixin.__init__(self, *args)
+        self.clear()
+
+    def clear(self):
+        """ Clear object state and dirty attribute """
+        self._dirties = set()
+        self._state = self.STATES.UNCHANGED
 
     def __setattr__(self, attribute, value):
         # Set the new value
         object.__setattr__(self, attribute, value)
         # And mark object as dirty except if changing _state attribute of course
-        if attribute != '_state':
+        if attribute not in ['_state', '_dirties']:
             object.__setattr__(self, '_state', TrackableMixin.STATES.MODIFIED)
+            # Track dirties attributes
+            self._dirties.add(attribute)

@@ -501,6 +501,41 @@ class TestFindByGroupAndRole(TestWithMockedServer):
         assert sorted_users[1].uuid == u'6789'
 
 
+class TestCreateUser(TestWithMockedServer):
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_not_modified(self):
+        """ Save an unmodified BonitaUser """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        # Mark user as unmodified
+        user.clear_state()
+
+        user.save()
+
+        assert user.is_modified is False
+
+    def test_fresh_user(self):
+        """ Save a freshly create BonitaUser """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        
+        url = '/identityAPI/addUser'
+        code = 204
+        user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='myusername')
+        BonitaServer.set_response_list([[url, code, user_xml]])
+
+        user.save()
+
+        assert user.is_modified is False
+        assert user.uuid == 'myuuid'
+
+
 class TestSave(TestWithMockedServer):
 
     @classmethod
@@ -516,6 +551,19 @@ class TestSave(TestWithMockedServer):
         user = BonitaUser(username=u'myusername', password=u'mypassword')
         # Mark user as unmodified
         user.clear_state()
+
+        user.save()
+
+        assert user.is_modified is False
+
+    def test_modified_direct_attributes(self):
+        """ Save a BonitaUser with only direct attributes modified """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        # Mark user as unmodified
+        user.clear_state()
+
+        # Now modified some direct attributes
+        #user.
 
         user.save()
 
