@@ -7,12 +7,12 @@ from . import BonitaServer
 from .exception import BonitaHTTPError, BonitaXMLError
 from .object import BonitaObject
 from .utils import set_if_available, xml_find, xml_find_all,\
-    TrackableList
+    TrackableList, TrackableObject
 
 __all__ = ['BonitaUser', 'BonitaGroup', 'BonitaRole', 'BonitaMembership']
 
 
-class BonitaUser(BonitaObject):
+class BonitaUser(BonitaObject, TrackableObject):
     """ A class to map a user in Bonita.
 
     """
@@ -99,6 +99,9 @@ class BonitaUser(BonitaObject):
 
         except XMLSchemaParseError:
             raise
+
+        # Mark this user as unchanged because we've just build it !
+        user.clear_state()
 
         return user
 
@@ -243,6 +246,10 @@ class BonitaUser(BonitaObject):
         It also create all associated resources, like BonitaMembership.
 
         """
+        # If nothing modified, nothing to do
+        if self.is_unchanged:
+            return
+
         url = "/identityAPI/addUser"
 
         data = dict()
@@ -259,6 +266,9 @@ class BonitaUser(BonitaObject):
         if len(instances) != 1:
             raise Exception  # fixme: raise clear Exception
         self._uuid = instances[0].text
+
+        # Mark as cleared of modification
+        self.clear_state()
 
     @classmethod
     def get_by_username(cls, username):
