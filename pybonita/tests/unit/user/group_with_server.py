@@ -41,5 +41,6 @@ class TestInstanciateFromXML(TestWithMockedServer):
         xml = ''
 
         group = BonitaGroup._instanciate_from_xml(xml)
+        # TODO Do something with the group
 
 

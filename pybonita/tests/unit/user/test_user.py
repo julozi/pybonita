@@ -21,30 +21,30 @@ class TestConstructor(TestCase):
 
     def test_init_base(self):
         """ Build a user with just base data """
-        user = BonitaUser(username=u'myusername',password=u'mypassword')
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
 
-        assert isinstance(user,BonitaUser)
+        assert isinstance(user, BonitaUser)
         assert user.username == u'myusername'
         assert user.password == u'mypassword'
-        assert isinstance(user.memberships,list)
+        assert isinstance(user.memberships, list)
         assert len(user.memberships) == 0
 
     def test_init_base_and_unsupported(self):
         """ Build a user with base data and some unsupported data """
-        user = BonitaUser(username=u'myusername',password=u'mypassword',truc=u'muche')
+        user = BonitaUser(username=u'myusername', password=u'mypassword', truc=u'muche')
 
-        assert isinstance(user,BonitaUser)
+        assert isinstance(user, BonitaUser)
         assert user.username == u'myusername'
         assert user.password == u'mypassword'
-        assert_raises(AttributeError, getattr,user,'truc')
+        assert_raises(AttributeError, getattr, user, 'truc')
 
     def test_init_optional_data(self):
         """ Build a user with some optional data """
-        user = BonitaUser(username=u'myusername',password=u'mypassword',
-            firstName = u'myfirstname',lastName = u'mylastname',
-            title = u'mytittle', jobTitle = u'myjobTitle')
+        user = BonitaUser(username=u'myusername', password=u'mypassword',
+            firstName=u'myfirstname', lastName=u'mylastname',
+            title=u'mytittle', jobTitle=u'myjobTitle')
 
-        assert isinstance(user,BonitaUser)
+        assert isinstance(user, BonitaUser)
         assert user.username == u'myusername'
         assert user.password == u'mypassword'
         assert user.firstName == u'myfirstname'
@@ -123,6 +123,7 @@ class TestInstanciateFromXML(TestCase):
         assert isinstance(user,BonitaUser)
         assert isinstance(user.memberships,list)
         assert len(user.memberships) == 2
+
 
 class TestGetUser(TestWithMockedServer):
 

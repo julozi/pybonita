@@ -66,8 +66,7 @@ class BonitaUser(BonitaObject):
 
         """
         if not isinstance(xml, (str, unicode)):
-            raise TypeError('xml must be a string or unicode not %s' %
-                        (type(xml)))
+            raise TypeError('xml must be a string or unicode not %s' % (type(xml)))
 
         soup = BeautifulSoup(xml, 'xml')
 
@@ -234,7 +233,7 @@ class BonitaUser(BonitaObject):
 #</User>
 
     def save(self, user=None, variables=None):
-        """ Save a BonitaUserg : sends data to create a BonitaUser on the server.
+        """ Save a BonitaUser : sends data to create a BonitaUser on the server.
         It also create all associated resources, like BonitaMembership.
 
         """
@@ -519,7 +518,7 @@ class BonitaGroup(BonitaObject):
         self.label = label
         self.description = description
 
-        if parent != None and not isinstance(parent, BonitaGroup):
+        if parent is not None and not isinstance(parent, BonitaGroup):
             raise TypeError('parent must be None or a BonitaGroup')
 
         self.parent = parent
@@ -891,8 +890,10 @@ class BonitaMembership(BonitaObject):
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
         except BonitaHTTPError as err:
-            if ('RoleNotFoundException'.lower() in err.bonita_exception.lower() or
-                'GroupNotFoundException'.lower() in err.bonita_exception.lower()):
+            err_string = err.bonita_exception.lower()
+            rnf_exc_string = 'RoleNotFoundException'.lower()
+            gnf_exc_string = 'GroupNotFoundException'.lower()
+            if (rnf_exc_string in err_string or gnf_exc_string in err_string):
                 return None
             else:
                 raise
@@ -922,8 +923,10 @@ class BonitaMembership(BonitaObject):
         try:
             xml = BonitaServer.get_instance().sendRESTRequest(url=url)
         except BonitaHTTPError as err:
-            if ('RoleNotFoundException'.lower() in err.bonita_exception.lower() or
-                'GroupNotFoundException'.lower() in err.bonita_exception.lower()):
+            err_string = err.bonita_exception.lower()
+            rnf_exc_string = 'RoleNotFoundException'.lower()
+            gnf_exc_string = 'GroupNotFoundException'.lower()
+            if (rnf_exc_string in err_string or gnf_exc_string in err_string):
                 return None
             else:
                 raise
