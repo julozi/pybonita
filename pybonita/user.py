@@ -54,6 +54,12 @@ class BonitaUser(BonitaObject):
 
     memberships = property(_get_memberships, None, None)
 
+    def _get_uuid(self):
+        """ Retrieve the UUID of a Bonita User """
+        return self._uuid
+
+    uuid = property(_get_uuid, None, None)  # This property ensure the UUID is not hand-written
+
     @classmethod
     def _instanciate_from_xml(cls, xml):
         """ Instanciate a BonitaUser from XML
@@ -78,7 +84,7 @@ class BonitaUser(BonitaObject):
             user = BonitaUser(username, password)
 
             # Main properties now
-            user.uuid = xml_find(user_soup, 'uuid').string
+            user._uuid = xml_find(user_soup, 'uuid').string
 
             # Other properties then
             set_if_available(user, user_soup, cls.USER_PROPERTIES)
@@ -252,7 +258,7 @@ class BonitaUser(BonitaObject):
         instances = soup.findAll("uuid")
         if len(instances) != 1:
             raise Exception  # fixme: raise clear Exception
-        self.uuid = instances[0].text
+        self._uuid = instances[0].text
 
     @classmethod
     def get_by_username(cls, username):
