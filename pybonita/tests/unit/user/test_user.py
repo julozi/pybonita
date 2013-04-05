@@ -55,6 +55,11 @@ class TestConstructor(TestCase):
         assert user.jobTitle == u'myjobTitle'
         assert user.is_modified is True
 
+# IMPROVE: check personal_infos at __init__
+# IMPROVE: check professional_infos at __init__
+# TODO: add tests for personal_infos
+# TODO: add tests for professional_infos
+
 
 class TestInstanciateFromXML(TestCase):
     """ Test the _instanciate_from_xml method """
@@ -538,6 +543,7 @@ class TestCreate(TestWithMockedServer):
 
 
 class TestUpdateBaseAttributes(TestWithMockedServer):
+    # IMPROVE: add tests with only parts of base attributes modified
 
     @classmethod
     def setUpClass(cls):
@@ -641,6 +647,78 @@ class TestUpdatePassword(TestWithMockedServer):
 
         assert user.is_modified is False
         assert user.password == u'some pass'
+
+
+class TestUpdatePersonalContactInfos(TestWithMockedServer):
+    # IMPROVE: add tests with only parts of personal contact infos modified
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_not_modified(self):
+        """ Update personal contact infos for unmodified BonitaUser """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        user._uuid = 'myuuid'
+
+        # Mark user as unmodified
+        user.clear_state()
+
+        user._update_personal_contact_infos()
+
+        assert user.is_modified is False
+
+    @raises(BonitaException)
+    def test_update_not_saved(self):
+        """ Update personal contact infos for BonitaUser which is not already saved """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+
+        user._update_personal_contact_infos()
+
+    def test_modified(self):
+        """ Update personal contact infos of a BonitaUser """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        user._uuid = 'myuuid'
+
+        # Prepare response of MockedServer
+        url = '/identityAPI/updateUserPersonalContactInfo'
+        code = 200
+        user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='other_usernames')
+        BonitaServer.set_response_list([[url, code, user_xml]])
+
+        # Modify some base attributes
+        user.personal_infos['building'] = u'building'
+        user.personal_infos['website'] = u'website'
+        user.personal_infos['state'] = u'state'
+        user.personal_infos['city'] = u'city'
+        user.personal_infos['country'] = u'country'
+        user.personal_infos['faxNumber'] = u'faxNumber'
+        user.personal_infos['phoneNumber'] = u'phoneNumber'
+        user.personal_infos['email'] = u'email'
+        user.personal_infos['address'] = u'address'
+        user.personal_infos['zipCode'] = u'zipCode'
+        user.personal_infos['mobileNumber'] = u'mobileNumber'
+        user.personal_infos['room'] = u'room'
+
+        user._update_personal_contact_infos()
+
+        assert user.is_modified is False
+        assert user.personal_infos['building'] == u'building'
+        assert user.personal_infos['website'] == u'website'
+        assert user.personal_infos['state'] == u'state'
+        assert user.personal_infos['city'] == u'city'
+        assert user.personal_infos['country'] == u'country'
+        assert user.personal_infos['faxNumber'] == u'faxNumber'
+        assert user.personal_infos['phoneNumber'] == u'phoneNumber'
+        assert user.personal_infos['email'] == u'email'
+        assert user.personal_infos['address'] == u'address'
+        assert user.personal_infos['zipCode'] == u'zipCode'
+        assert user.personal_infos['mobileNumber'] == u'mobileNumber'
+        assert user.personal_infos['room'] == u'room'
 
 
 class TestUpdate(TestWithMockedServer):

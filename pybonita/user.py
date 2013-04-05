@@ -43,8 +43,12 @@ class BonitaUser(BonitaObject, TrackableObject):
         self._uuid = None
         self.username = username
         self.password = password
+        self.personal_infos = dict()
+        self.professional_infos = dict()
 
         # Set other user properties
+        # TODO: loading of personal_infos
+        # TODO: loading of professional_infos
         for (arg_key, arg_value) in kwargs.iteritems():
             if arg_key in self.USER_PROPERTIES:
                 setattr(self, arg_key, arg_value)
@@ -308,18 +312,50 @@ class BonitaUser(BonitaObject, TrackableObject):
         pass
 
     def _update_personal_contact_infos(self, user=None):
-        """ Update personal contact infos of a BonitaUser """
-        # personal contact infos
-        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserPersonalContactInfo/index.html#POST
+        """ Update personal contact infos of a BonitaUser:
+        building, website, state, city, country, faxNumber, phoneNumber, email, address, zipCode,
+        mobileNumber, room
 
-        # TODO: to develop
-        pass
+        http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserPersonalContactInfo/index.html#POST
+
+        """
+        if self._uuid is None:
+            raise BonitaException('must save BonitaUser before updating it')
+        if self.is_unchanged:
+            return
+
+        url = "/identityAPI/updateUserPersonalContactInfo"
+
+        data = dict()
+
+        data['userUUID'] = self.uuid
+
+        data['building'] = self.personal_infos.get('building','')
+        data['website'] = self.personal_infos.get('website','')
+        data['state'] = self.personal_infos.get('state','')
+        data['city'] = self.personal_infos.get('city','')
+        data['country'] = self.personal_infos.get('country','')
+        data['faxNumber'] = self.personal_infos.get('faxNumber','')
+        data['phoneNumber'] = self.personal_infos.get('phoneNumber','')
+        data['email'] = self.personal_infos.get('email','')
+        data['address'] = self.personal_infos.get('address','')
+        data['zipCode'] = self.personal_infos.get('zipCode','')
+        data['mobileNumber'] = self.personal_infos.get('mobileNumber','')
+        data['room'] = self.personal_infos.get('room','')
+
+        # Call the BonitaServer
+        BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
+
+        # Mark as cleared of any modification
+        self.clear_state()
+
 
     def _update_password(self, user=None):
-        """ Update password of a BonitaUser """
-        # password
-        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserPassword/index.html
+        """ Update password of a BonitaUser
 
+        http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserPassword/index.html
+
+        """
         if self._uuid is None:
             raise BonitaException('must save BonitaUser before updating it')
         if self.is_unchanged:
@@ -330,6 +366,7 @@ class BonitaUser(BonitaObject, TrackableObject):
         data = dict()
 
         data['userUUID'] = self.uuid
+
         data['password'] = self.password
 
         # Call the BonitaServer
@@ -339,9 +376,14 @@ class BonitaUser(BonitaObject, TrackableObject):
         self.clear_state()
 
     def _update_base_attributes(self, user=None):
-        """ Update base attributes of a BonitaUser """
-        # lastname, title, username, firstname, jobtitle, managerUserUUID, profileMetadata
-        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserByUUID/index.html
+        """ Update base attributes of a BonitaUser :
+        lastname, title, username, firstname, jobtitle
+        
+        # IMPROVE: add managerUserUUID, profileMetadata
+
+        http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserByUUID/index.html
+
+        """
         if self._uuid is None:
             raise BonitaException('must save BonitaUser before updating it')
         if self.is_unchanged:
@@ -351,15 +393,12 @@ class BonitaUser(BonitaObject, TrackableObject):
 
         data = dict()
 
-        # TODO: add info about manager 
-        # data['managerUserUUID'] = 
-        # TODO: add info about profileMetadata 
-        # data['profileMetadata'] = 
+        data['userUUID'] = self.uuid
+
         data['lastName'] = getattr(self,'last_name','')
         data['title'] = getattr(self,'title','')
         data['username'] = getattr(self,'username','')
         data['firstName'] = getattr(self,'first_name','')
-        data['userUUID'] = self.uuid
         data['jobTitle'] = getattr(self,'job_title','')
 
         # Call the BonitaServer
