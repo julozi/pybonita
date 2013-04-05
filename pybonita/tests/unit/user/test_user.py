@@ -594,6 +594,55 @@ class TestUpdateBaseAttributes(TestWithMockedServer):
         assert user.job_title == u'job_title'
 
 
+class TestUpdatePassword(TestWithMockedServer):
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_not_modified(self):
+        """ Update password for unmodified BonitaUser """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        user._uuid = 'myuuid'
+
+        # Mark user as unmodified
+        user.clear_state()
+
+        user._update_password()
+
+        assert user.is_modified is False
+
+    @raises(BonitaException)
+    def test_update_not_saved(self):
+        """ Update password for BonitaUser which is not already saved """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+
+        user._update_password()
+
+    def test_modified(self):
+        """ Update password of a BonitaUser """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        user._uuid = 'myuuid'
+
+        # Prepare response of MockedServer
+        url = '/identityAPI/updateUserPassword'
+        code = 200
+        user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='other_usernames')
+        BonitaServer.set_response_list([[url, code, user_xml]])
+
+        # Modify password
+        user.password = u'some pass'
+
+        user._update_password()
+
+        assert user.is_modified is False
+        assert user.password == u'some pass'
+
+
 class TestUpdate(TestWithMockedServer):
 
     @classmethod

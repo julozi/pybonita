@@ -320,8 +320,23 @@ class BonitaUser(BonitaObject, TrackableObject):
         # password
         # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserPassword/index.html
 
-        # TODO: to develop
-        pass
+        if self._uuid is None:
+            raise BonitaException('must save BonitaUser before updating it')
+        if self.is_unchanged:
+            return
+
+        url = "/identityAPI/updateUserPassword"
+
+        data = dict()
+
+        data['userUUID'] = self.uuid
+        data['password'] = self.password
+
+        # Call the BonitaServer
+        BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
+
+        # Mark as cleared of any modification
+        self.clear_state()
 
     def _update_base_attributes(self, user=None):
         """ Update base attributes of a BonitaUser """
