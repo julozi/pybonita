@@ -73,10 +73,10 @@ class BonitaUser(BonitaObject, TrackableObject):
 
         """
         if attribute is None:
-            getattr(self,'personal_infos',TrackableDict()).clear_state()
-            getattr(self,'professional_infos',TrackableDict()).clear_state()
+            getattr(self, 'personal_infos', TrackableDict()).clear_state()
+            getattr(self, 'professional_infos', TrackableDict()).clear_state()
 
-        super(BonitaUser,self).clear(attribute)
+        super(BonitaUser, self).clear(attribute)
 
     @classmethod
     def _instanciate_from_xml(cls, xml):
@@ -275,7 +275,6 @@ class BonitaUser(BonitaObject, TrackableObject):
         # Now we can deal with all other attributes
         self._update(user=user)
 
-
     def _create(self, user=None):
         """ Create a new BonitaUser.
         This method will set the username, password and uuid attributes.
@@ -359,18 +358,18 @@ class BonitaUser(BonitaObject, TrackableObject):
 
         data['userUUID'] = self.uuid
 
-        data['building'] = self.professional_infos.get('building','')
-        data['website'] = self.professional_infos.get('website','')
-        data['state'] = self.professional_infos.get('state','')
-        data['city'] = self.professional_infos.get('city','')
-        data['country'] = self.professional_infos.get('country','')
-        data['faxNumber'] = self.professional_infos.get('faxNumber','')
-        data['phoneNumber'] = self.professional_infos.get('phoneNumber','')
-        data['email'] = self.professional_infos.get('email','')
-        data['address'] = self.professional_infos.get('address','')
-        data['zipCode'] = self.professional_infos.get('zipCode','')
-        data['mobileNumber'] = self.professional_infos.get('mobileNumber','')
-        data['room'] = self.professional_infos.get('room','')
+        data['building'] = self.professional_infos.get('building', '')
+        data['website'] = self.professional_infos.get('website', '')
+        data['state'] = self.professional_infos.get('state', '')
+        data['city'] = self.professional_infos.get('city', '')
+        data['country'] = self.professional_infos.get('country', '')
+        data['faxNumber'] = self.professional_infos.get('faxNumber', '')
+        data['phoneNumber'] = self.professional_infos.get('phoneNumber', '')
+        data['email'] = self.professional_infos.get('email', '')
+        data['address'] = self.professional_infos.get('address', '')
+        data['zipCode'] = self.professional_infos.get('zipCode', '')
+        data['mobileNumber'] = self.professional_infos.get('mobileNumber', '')
+        data['room'] = self.professional_infos.get('room', '')
 
         # Call the BonitaServer
         BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
@@ -397,18 +396,18 @@ class BonitaUser(BonitaObject, TrackableObject):
 
         data['userUUID'] = self.uuid
 
-        data['building'] = self.personal_infos.get('building','')
-        data['website'] = self.personal_infos.get('website','')
-        data['state'] = self.personal_infos.get('state','')
-        data['city'] = self.personal_infos.get('city','')
-        data['country'] = self.personal_infos.get('country','')
-        data['faxNumber'] = self.personal_infos.get('faxNumber','')
-        data['phoneNumber'] = self.personal_infos.get('phoneNumber','')
-        data['email'] = self.personal_infos.get('email','')
-        data['address'] = self.personal_infos.get('address','')
-        data['zipCode'] = self.personal_infos.get('zipCode','')
-        data['mobileNumber'] = self.personal_infos.get('mobileNumber','')
-        data['room'] = self.personal_infos.get('room','')
+        data['building'] = self.personal_infos.get('building', '')
+        data['website'] = self.personal_infos.get('website', '')
+        data['state'] = self.personal_infos.get('state', '')
+        data['city'] = self.personal_infos.get('city', '')
+        data['country'] = self.personal_infos.get('country', '')
+        data['faxNumber'] = self.personal_infos.get('faxNumber', '')
+        data['phoneNumber'] = self.personal_infos.get('phoneNumber', '')
+        data['email'] = self.personal_infos.get('email', '')
+        data['address'] = self.personal_infos.get('address', '')
+        data['zipCode'] = self.personal_infos.get('zipCode', '')
+        data['mobileNumber'] = self.personal_infos.get('mobileNumber', '')
+        data['room'] = self.personal_infos.get('room', '')
 
         # Call the BonitaServer
         BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
@@ -446,7 +445,7 @@ class BonitaUser(BonitaObject, TrackableObject):
     def _update_base_attributes(self, user=None):
         """ Update base attributes of a BonitaUser :
         lastname, title, username, firstname, jobtitle
-        
+
         # IMPROVE: add managerUserUUID, profileMetadata
 
         http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserByUUID/index.html
@@ -463,11 +462,11 @@ class BonitaUser(BonitaObject, TrackableObject):
 
         data['userUUID'] = self.uuid
 
-        data['lastName'] = getattr(self,'last_name','')
-        data['title'] = getattr(self,'title','')
-        data['username'] = getattr(self,'username','')
-        data['firstName'] = getattr(self,'first_name','')
-        data['jobTitle'] = getattr(self,'job_title','')
+        data['lastName'] = getattr(self, 'last_name', '')
+        data['title'] = getattr(self, 'title', '')
+        data['username'] = getattr(self, 'username', '')
+        data['firstName'] = getattr(self, 'first_name', '')
+        data['jobTitle'] = getattr(self, 'job_title', '')
 
         # Call the BonitaServer
         BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)

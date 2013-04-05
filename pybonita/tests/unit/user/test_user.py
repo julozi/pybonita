@@ -520,7 +520,7 @@ class TestCreate(TestWithMockedServer):
     def test_fresh_user(self):
         """ Save a freshly create BonitaUser """
         user = BonitaUser(username=u'myusername', password=u'mypassword')
-        
+
         url = '/identityAPI/addUser'
         code = 204
         user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='myusername')

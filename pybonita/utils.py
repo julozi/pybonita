@@ -5,7 +5,7 @@ from xml.dom.minidom import Document
 from lxml.etree import XMLSchemaParseError
 
 __all__ = ['dictToMapString', 'set_if_available', 'xml_find', 'xml_find_all',
-           'TrackableList', 'TrackableObject','TrackableDict']
+           'TrackableList', 'TrackableObject', 'TrackableDict']
 
 
 def dictToMapString(data_dict):
