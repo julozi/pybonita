@@ -517,16 +517,6 @@ class TestCreate(TestWithMockedServer):
     def tearDownClass(cls):
         pass
 
-    def test_not_modified(self):
-        """ Save an unmodified BonitaUser """
-        user = BonitaUser(username=u'myusername', password=u'mypassword')
-        # Mark user as unmodified
-        user.clear_state()
-
-        user._create()
-
-        assert user.is_modified is False
-
     def test_fresh_user(self):
         """ Save a freshly create BonitaUser """
         user = BonitaUser(username=u'myusername', password=u'mypassword')
@@ -592,12 +582,15 @@ class TestUpdateBaseAttributes(TestWithMockedServer):
 
         user._update_base_attributes()
 
-        assert user.is_modified is False
         assert user.last_name == u'last_name'
         assert user.title == u'Doctor'
         assert user.username == u'other_username'
         assert user.first_name == u'first_name'
         assert user.job_title == u'job_title'
+
+        dirties = user.get_dirties()
+        for attribute in user.BASE_ATTRIBUTES:
+            assert attribute not in dirties
 
 
 class TestUpdatePassword(TestWithMockedServer):
@@ -645,8 +638,10 @@ class TestUpdatePassword(TestWithMockedServer):
 
         user._update_password()
 
-        assert user.is_modified is False
         assert user.password == u'some pass'
+
+        dirties = user.get_dirties()
+        assert 'password' not in dirties
 
 
 class TestUpdatePersonalContactInfos(TestWithMockedServer):
@@ -706,7 +701,6 @@ class TestUpdatePersonalContactInfos(TestWithMockedServer):
 
         user._update_personal_contact_infos()
 
-        assert user.is_modified is False
         assert user.personal_infos['building'] == u'building'
         assert user.personal_infos['website'] == u'website'
         assert user.personal_infos['state'] == u'state'
@@ -719,6 +713,8 @@ class TestUpdatePersonalContactInfos(TestWithMockedServer):
         assert user.personal_infos['zipCode'] == u'zipCode'
         assert user.personal_infos['mobileNumber'] == u'mobileNumber'
         assert user.personal_infos['room'] == u'room'
+
+        assert user.personal_infos.is_modified is False
 
 
 class TestUpdateProfessionalContactInfos(TestWithMockedServer):
@@ -778,7 +774,6 @@ class TestUpdateProfessionalContactInfos(TestWithMockedServer):
 
         user._update_professional_contact_infos()
 
-        assert user.is_modified is False
         assert user.professional_infos['building'] == u'building'
         assert user.professional_infos['website'] == u'website'
         assert user.professional_infos['state'] == u'state'
@@ -791,6 +786,8 @@ class TestUpdateProfessionalContactInfos(TestWithMockedServer):
         assert user.professional_infos['zipCode'] == u'zipCode'
         assert user.professional_infos['mobileNumber'] == u'mobileNumber'
         assert user.professional_infos['room'] == u'room'
+
+        assert user.professional_infos.is_modified is False
 
 
 class TestUpdate(TestWithMockedServer):
@@ -809,7 +806,7 @@ class TestUpdate(TestWithMockedServer):
         user._uuid = 'myuuid'
 
         # Mark user as unmodified
-        user.clear_state()
+        user.clear()
 
         user._update()
 
@@ -824,35 +821,136 @@ class TestUpdate(TestWithMockedServer):
 
     def test_professional_contact_infos_modified(self):
         """ Update profressional contact infos of BonitaUser """
-        # TODO: to develop
         user = BonitaUser(username=u'myusername', password=u'mypassword')
         user._uuid = 'myuuid'
+        user.clear()
+
+        # Prepare response of MockedServer
+        url = '/identityAPI/updateUserProfessionalContactInfo'
+        code = 200
+        user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='other_usernames')
+        BonitaServer.set_response_list([[url, code, user_xml]])
+
+        # Modify some professional contact data
+        user.professional_infos['building'] = u'building'
+        user.professional_infos['website'] = u'website'
+        user.professional_infos['state'] = u'state'
+        user.professional_infos['city'] = u'city'
+        user.professional_infos['country'] = u'country'
+        user.professional_infos['faxNumber'] = u'faxNumber'
+        user.professional_infos['phoneNumber'] = u'phoneNumber'
+        user.professional_infos['email'] = u'email'
+        user.professional_infos['address'] = u'address'
+        user.professional_infos['zipCode'] = u'zipCode'
+        user.professional_infos['mobileNumber'] = u'mobileNumber'
+        user.professional_infos['room'] = u'room'
 
         user._update()
+
+        assert user.is_modified is False
+        assert user.professional_infos['building'] == u'building'
+        assert user.professional_infos['website'] == u'website'
+        assert user.professional_infos['state'] == u'state'
+        assert user.professional_infos['city'] == u'city'
+        assert user.professional_infos['country'] == u'country'
+        assert user.professional_infos['faxNumber'] == u'faxNumber'
+        assert user.professional_infos['phoneNumber'] == u'phoneNumber'
+        assert user.professional_infos['email'] == u'email'
+        assert user.professional_infos['address'] == u'address'
+        assert user.professional_infos['zipCode'] == u'zipCode'
+        assert user.professional_infos['mobileNumber'] == u'mobileNumber'
+        assert user.professional_infos['room'] == u'room'
 
     def test_personal_contact_infos_modified(self):
         """ Update personal contact infos of BonitaUser """
-        # TODO: to develop
         user = BonitaUser(username=u'myusername', password=u'mypassword')
         user._uuid = 'myuuid'
+        user.clear()
+
+        # Prepare response of MockedServer
+        url = '/identityAPI/updateUserPersonalContactInfo'
+        code = 200
+        user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='other_usernames')
+        BonitaServer.set_response_list([[url, code, user_xml]])
+
+        # Modify some personal contact data
+        user.personal_infos['building'] = u'building'
+        user.personal_infos['website'] = u'website'
+        user.personal_infos['state'] = u'state'
+        user.personal_infos['city'] = u'city'
+        user.personal_infos['country'] = u'country'
+        user.personal_infos['faxNumber'] = u'faxNumber'
+        user.personal_infos['phoneNumber'] = u'phoneNumber'
+        user.personal_infos['email'] = u'email'
+        user.personal_infos['address'] = u'address'
+        user.personal_infos['zipCode'] = u'zipCode'
+        user.personal_infos['mobileNumber'] = u'mobileNumber'
+        user.personal_infos['room'] = u'room'
 
         user._update()
+
+        assert user.is_modified is False
+        assert user.personal_infos['building'] == u'building'
+        assert user.personal_infos['website'] == u'website'
+        assert user.personal_infos['state'] == u'state'
+        assert user.personal_infos['city'] == u'city'
+        assert user.personal_infos['country'] == u'country'
+        assert user.personal_infos['faxNumber'] == u'faxNumber'
+        assert user.personal_infos['phoneNumber'] == u'phoneNumber'
+        assert user.personal_infos['email'] == u'email'
+        assert user.personal_infos['address'] == u'address'
+        assert user.personal_infos['zipCode'] == u'zipCode'
+        assert user.personal_infos['mobileNumber'] == u'mobileNumber'
+        assert user.personal_infos['room'] == u'room'
 
     def test_password_modified(self):
         """ Update password contact infos of BonitaUser """
-        # TODO: to develop
         user = BonitaUser(username=u'myusername', password=u'mypassword')
         user._uuid = 'myuuid'
 
+        user.clear()
+
+        # Prepare response of MockedServer
+        url = '/identityAPI/updateUserPassword'
+        code = 200
+        user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='other_usernames')
+        BonitaServer.set_response_list([[url, code, user_xml]])
+
+        # Modify password
+        user.password = u'some pass'
+
         user._update()
+
+        assert user.is_modified is False
+        assert user.password == u'some pass'
 
     def test_base_attributes_modified(self):
         """ Update BonitaUser base attributes """
-        # TODO: to develop
         user = BonitaUser(username=u'myusername', password=u'mypassword')
         user._uuid = 'myuuid'
+        user.clear()
+
+        # Prepare response of MockedServer
+        url = '/identityAPI/updateUserByUUID'
+        code = 200
+        user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='other_usernames')
+        BonitaServer.set_response_list([[url, code, user_xml]])
+
+        # Modify some base attributes
+        user.last_name = u'last_name'
+        user.title = u'Doctor'
+        user.username = u'other_username'
+        user.first_name = u'first_name'
+        user.job_title = u'job_title'
 
         user._update()
+
+        assert user.is_modified is False
+        assert user.last_name == u'last_name'
+        assert user.title == u'Doctor'
+        assert user.username == u'other_username'
+        assert user.first_name == u'first_name'
+        assert user.job_title == u'job_title'
 
 
 class TestSave(TestWithMockedServer):
@@ -880,4 +978,4 @@ class TestSave(TestWithMockedServer):
         # TODO: to develop
         pass
 
-# TODO: add more tests for save
+# TODO: add more tests for save : save must create but also update if needed

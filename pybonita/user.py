@@ -7,7 +7,7 @@ from . import BonitaServer
 from .exception import BonitaHTTPError, BonitaXMLError, BonitaException
 from .object import BonitaObject
 from .utils import set_if_available, xml_find, xml_find_all,\
-    TrackableList, TrackableObject
+    TrackableList, TrackableObject, TrackableDict
 
 __all__ = ['BonitaUser', 'BonitaGroup', 'BonitaRole', 'BonitaMembership']
 
@@ -43,8 +43,8 @@ class BonitaUser(BonitaObject, TrackableObject):
         self._uuid = None
         self.username = username
         self.password = password
-        self.personal_infos = dict()
-        self.professional_infos = dict()
+        self.personal_infos = TrackableDict()
+        self.professional_infos = TrackableDict()
 
         # Set other user properties
         # TODO: loading of personal_infos
@@ -66,6 +66,17 @@ class BonitaUser(BonitaObject, TrackableObject):
         return self._uuid
 
     uuid = property(_get_uuid, None, None)  # This property ensure the UUID is not hand-written
+
+    def clear(self, attribute=None):
+        """ Clear an attribute or all data from modified flag.
+        *If attribute is not given, clear all modified attributes.*
+
+        """
+        if attribute is None:
+            getattr(self,'personal_infos',TrackableDict()).clear_state()
+            getattr(self,'professional_infos',TrackableDict()).clear_state()
+
+        super(BonitaUser,self).clear(attribute)
 
     @classmethod
     def _instanciate_from_xml(cls, xml):
@@ -108,7 +119,7 @@ class BonitaUser(BonitaObject, TrackableObject):
             raise
 
         # Mark this user as unchanged because we've just build it !
-        user.clear_state()
+        user.clear()
 
         return user
 
@@ -262,7 +273,7 @@ class BonitaUser(BonitaObject, TrackableObject):
             self._create_user(user=user)
 
         # Now we can deal with all other attributes
-        pass  # TODO: to complete with update
+        self._update(user=user)
 
 
     def _create(self, user=None):
@@ -288,7 +299,7 @@ class BonitaUser(BonitaObject, TrackableObject):
         self._uuid = instances[0].text
 
         # Mark as cleared of any modification
-        self.clear_state()
+        self.clear()
 
     def _update(self, user=None):
         """ Update a BonitaUser.
@@ -300,8 +311,34 @@ class BonitaUser(BonitaObject, TrackableObject):
         # for roles
         # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/setUserRoles/%7Busername%7D/index.html
 
-        # TODO: to develop
-        pass
+        if self._uuid is None:
+            raise BonitaException('must save BonitaUser before updating it')
+        if self.is_unchanged:
+            return
+
+        # Look out if dictionnaries are dirties
+        if self.personal_infos.is_modified:
+            # Personal contact infos modified
+            self._update_personal_contact_infos(user)
+
+        if self.professional_infos.is_modified:
+            # Professional contact infos modified
+            self._update_professional_contact_infos(user)
+
+        # Get dirties attributes
+        dirties = self.get_dirties()
+
+        # Some base attributes are dirty ?
+        dirties_base_attributes = set(dirties).intersection(set(self.BASE_ATTRIBUTES))
+        if len(dirties_base_attributes) > 0:
+            self._update_base_attributes(user)
+
+        # Password dirty ?
+        if 'password' in dirties:
+            self._update_password(user)
+
+        # Mark as cleared of any modification
+        self.clear()
 
     def _update_professional_contact_infos(self, user=None):
         """ Update professional contact infos of a BonitaUser:
@@ -339,7 +376,7 @@ class BonitaUser(BonitaObject, TrackableObject):
         BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
 
         # Mark as cleared of any modification
-        self.clear_state()
+        self.professional_infos.clear_state()
 
     def _update_personal_contact_infos(self, user=None):
         """ Update personal contact infos of a BonitaUser:
@@ -377,7 +414,7 @@ class BonitaUser(BonitaObject, TrackableObject):
         BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
 
         # Mark as cleared of any modification
-        self.clear_state()
+        self.personal_infos.clear_state()
 
     def _update_password(self, user=None):
         """ Update password of a BonitaUser
@@ -402,7 +439,9 @@ class BonitaUser(BonitaObject, TrackableObject):
         BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
 
         # Mark as cleared of any modification
-        self.clear_state()
+        self.clear('password')
+
+    BASE_ATTRIBUTES = ['lastname', 'title', 'username', 'firstname', 'jobtitle']
 
     def _update_base_attributes(self, user=None):
         """ Update base attributes of a BonitaUser :
@@ -434,7 +473,8 @@ class BonitaUser(BonitaObject, TrackableObject):
         BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
 
         # Mark as cleared of any modification
-        self.clear_state()
+        for attribute in self.BASE_ATTRIBUTES:
+            self.clear(attribute)
 
     @classmethod
     def get_by_username(cls, username):

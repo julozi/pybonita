@@ -5,7 +5,7 @@ from xml.dom.minidom import Document
 from lxml.etree import XMLSchemaParseError
 
 __all__ = ['dictToMapString', 'set_if_available', 'xml_find', 'xml_find_all',
-           'TrackableList', 'TrackableObject']
+           'TrackableList', 'TrackableObject','TrackableDict']
 
 
 def dictToMapString(data_dict):
@@ -182,6 +182,43 @@ class TrackableList(list, TrackableMixin):
     remove = _wrap(list.remove)
     reverse = _wrap(list.reverse)
     sort = _wrap(list.sort)
+
+
+class TrackableDict(dict, TrackableMixin):
+    """ A Dictionnary with tracked changes
+
+    Example
+.. code ::
+
+    td = TracklableDict({'a': 1, 'b': 2})  # td.is_modified == False
+    td['a'] = 3  # td.is_modified == True
+    td.clear_state() # td.is_modified == False
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        TrackableMixin.__init__(self)
+
+    def __setitem__(self, key, value):
+        super(TrackableDict, self).__setitem__(key, value)
+
+    def update(self, *args, **kwargs):
+        if len(args) > 1:
+            raise TypeError("update expected at most 1 arguments, got %d" % len(args))
+
+        other = dict(*args, **kwargs)
+        for key in other:
+            self[key] = other[key]
+
+        self._set_modified()
+
+    def setdefault(self, key, value=None):
+        if key not in self:
+            self[key] = value
+            self._set_modified()
+
+        return self[key]
 
 
 class TrackableObject(TrackableMixin):
