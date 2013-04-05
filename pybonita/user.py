@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from lxml.etree import XMLSchemaParseError
 
 from . import BonitaServer
-from .exception import BonitaHTTPError, BonitaXMLError
+from .exception import BonitaHTTPError, BonitaXMLError, BonitaException
 from .object import BonitaObject
 from .utils import set_if_available, xml_find, xml_find_all,\
     TrackableList, TrackableObject
@@ -28,7 +28,7 @@ class BonitaUser(BonitaObject, TrackableObject):
         :type password: str
 
         """
-        # TODO Add other params
+        #TODO: Add other params
         # membership ou (role,group) mais ils sont exclusifs
         # Prends aussi d'autres parametres qui sont les champs d'un user dans
         # bontia :
@@ -258,9 +258,10 @@ class BonitaUser(BonitaObject, TrackableObject):
             self._create_user(user=user)
 
         # Now we can deal with all other attributes
-        pass
+        pass  # TODO: to complete with update
 
-    def _create_user(self, user=None):
+
+    def _create(self, user=None):
         """ Create a new BonitaUser.
         This method will set the username, password and uuid attributes.
 
@@ -282,23 +283,75 @@ class BonitaUser(BonitaObject, TrackableObject):
             raise Exception  # fixme: raise clear Exception
         self._uuid = instances[0].text
 
-        # Mark as cleared of modification
+        # Mark as cleared of any modification
         self.clear_state()
 
-    def _update_user(self, user=None):
+    def _update(self, user=None):
+        """ Update a BonitaUser.
+        The BonitaUser muste already have been saved, and so has an UUID.
+
+        """
         # for membership
         # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/setUserMemberships/%7BuserUUID%7D/index.html
         # for roles
         # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/setUserRoles/%7Busername%7D/index.html
-        # lastname, title, username, firstname, jobtitle
-        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserByUUID/index.html
-        # password
-        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserPassword/index.html
-        # personal contact infos
-        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserPersonalContactInfo/index.html#POST
+
+        # TODO: to develop
+        pass
+
+    def _update_professional_contact_infos(self, user=None):
+        """ Update professional contact infos of a BonitaUser """
         # professional contact infos
         # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserProfessionalContactInfo/index.html
+
+        # TODO: to develop
         pass
+
+    def _update_personal_contact_infos(self, user=None):
+        """ Update personal contact infos of a BonitaUser """
+        # personal contact infos
+        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserPersonalContactInfo/index.html#POST
+
+        # TODO: to develop
+        pass
+
+    def _update_password(self, user=None):
+        """ Update password of a BonitaUser """
+        # password
+        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserPassword/index.html
+
+        # TODO: to develop
+        pass
+
+    def _update_base_attributes(self, user=None):
+        """ Update base attributes of a BonitaUser """
+        # lastname, title, username, firstname, jobtitle, managerUserUUID, profileMetadata
+        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserByUUID/index.html
+        if self._uuid is None:
+            raise BonitaException('must save BonitaUser before updating it')
+        if self.is_unchanged:
+            return
+
+        url = "/identityAPI/updateUserByUUID"
+
+        data = dict()
+
+        # TODO: add info about manager 
+        # data['managerUserUUID'] = 
+        # TODO: add info about profileMetadata 
+        # data['profileMetadata'] = 
+        data['lastName'] = getattr(self,'last_name','')
+        data['title'] = getattr(self,'title','')
+        data['username'] = getattr(self,'username','')
+        data['firstName'] = getattr(self,'first_name','')
+        data['userUUID'] = self.uuid
+        data['jobTitle'] = getattr(self,'job_title','')
+
+        # Call the BonitaServer
+        BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
+
+        # Mark as cleared of any modification
+        self.clear_state()
 
     @classmethod
     def get_by_username(cls, username):

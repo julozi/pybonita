@@ -3,6 +3,7 @@ from lxml.etree import XMLSchemaParseError
 from nose.tools import raises, assert_raises
 
 from pybonita import BonitaServer
+from pybonita.exception import BonitaException
 from pybonita.tests import TestCase, TestWithMockedServer, build_dumb_bonita_error_body,\
     build_bonita_user_xml, build_xml_set, build_xml_list
 from pybonita.user import BonitaUser, BonitaRole, BonitaGroup, BonitaMembership
@@ -501,7 +502,7 @@ class TestFindByGroupAndRole(TestWithMockedServer):
         assert sorted_users[1].uuid == u'6789'
 
 
-class TestCreateUser(TestWithMockedServer):
+class TestCreate(TestWithMockedServer):
 
     @classmethod
     def setUpClass(cls):
@@ -517,7 +518,7 @@ class TestCreateUser(TestWithMockedServer):
         # Mark user as unmodified
         user.clear_state()
 
-        user.save()
+        user._create()
 
         assert user.is_modified is False
 
@@ -530,10 +531,129 @@ class TestCreateUser(TestWithMockedServer):
         user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='myusername')
         BonitaServer.set_response_list([[url, code, user_xml]])
 
-        user.save()
+        user._create()
 
         assert user.is_modified is False
         assert user.uuid == 'myuuid'
+
+
+class TestUpdateBaseAttributes(TestWithMockedServer):
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_not_modified(self):
+        """ Update base attributes for unmodified BonitaUser """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        user._uuid = 'myuuid'
+
+        # Mark user as unmodified
+        user.clear_state()
+
+        user._update_base_attributes()
+
+        assert user.is_modified is False
+
+    @raises(BonitaException)
+    def test_update_not_saved(self):
+        """ Update base attributes fors BonitaUser which is not already saved """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+
+        user._update_base_attributes()
+
+    def test_modified(self):
+        """ Update base attributes of a BonitaUser """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        user._uuid = 'myuuid'
+
+        # Prepare response of MockedServer
+        url = '/identityAPI/updateUserByUUID'
+        code = 200
+        user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='other_usernames')
+        BonitaServer.set_response_list([[url, code, user_xml]])
+
+        # Modify some base attributes
+        user.last_name = u'last_name'
+        user.title = u'Doctor'
+        user.username = u'other_username'
+        user.first_name = u'first_name'
+        user.job_title = u'job_title'
+
+        user._update_base_attributes()
+
+        assert user.is_modified is False
+        assert user.last_name == u'last_name'
+        assert user.title == u'Doctor'
+        assert user.username == u'other_username'
+        assert user.first_name == u'first_name'
+        assert user.job_title == u'job_title'
+
+
+class TestUpdate(TestWithMockedServer):
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_not_modified(self):
+        """ Update an unmodified BonitaUser """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        user._uuid = 'myuuid'
+
+        # Mark user as unmodified
+        user.clear_state()
+
+        user._update()
+
+        assert user.is_modified is False
+
+    @raises(BonitaException)
+    def test_update_not_saved(self):
+        """ Update a BonitaUser which is not already saved """
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+
+        user._update()
+
+    def test_professional_contact_infos_modified(self):
+        """ Update profressional contact infos of BonitaUser """
+        # TODO: to develop
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        user._uuid = 'myuuid'
+
+        user._update()
+
+    def test_personal_contact_infos_modified(self):
+        """ Update personal contact infos of BonitaUser """
+        # TODO: to develop
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        user._uuid = 'myuuid'
+
+        user._update()
+
+    def test_password_modified(self):
+        """ Update password contact infos of BonitaUser """
+        # TODO: to develop
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        user._uuid = 'myuuid'
+
+        user._update()
+
+    def test_base_attributes_modified(self):
+        """ Update BonitaUser base attributes """
+        # TODO: to develop
+        user = BonitaUser(username=u'myusername', password=u'mypassword')
+        user._uuid = 'myuuid'
+
+        user._update()
 
 
 class TestSave(TestWithMockedServer):
@@ -556,15 +676,9 @@ class TestSave(TestWithMockedServer):
 
         assert user.is_modified is False
 
-    def test_modified_direct_attributes(self):
-        """ Save a BonitaUser with only direct attributes modified """
-        user = BonitaUser(username=u'myusername', password=u'mypassword')
-        # Mark user as unmodified
-        user.clear_state()
+    def test_newly_created(self):
+        """ Save a newly create BonitaUser """
+        # TODO: to develop
+        pass
 
-        # Now modified some direct attributes
-        #user.
-
-        user.save()
-
-        assert user.is_modified is False
+# TODO: add more tests for save

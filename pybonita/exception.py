@@ -9,6 +9,8 @@ __all__ = ['BonitaException','BonitaServerNotInitializedError',
 
 class BonitaException(Exception):
     """ Base class for exception raised in this package """
+    _base_message = ''
+
     def __init__(self,err_info=None):
         self.err_info = err_info
         

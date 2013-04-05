@@ -191,10 +191,23 @@ class TrackableObject(TrackableMixin):
         TrackableMixin.__init__(self, *args)
         self.clear()
 
-    def clear(self):
-        """ Clear object state and dirty attribute """
-        self._dirties = set()
-        self._state = self.STATES.UNCHANGED
+    def clear(self, attribute=None):
+        """ Clear an attribute, if given, or all the dirty attributes.
+        *If all attributes are cleared, object state is cleared also.*
+
+        """
+        if attribute is not None:
+            if attribute in self._dirties:
+                self._dirties.remove(attribute)
+                if len(self._dirties) == 0:
+                    self._state = self.STATES.UNCHANGED
+        else:
+            self._dirties = set()
+            self._state = self.STATES.UNCHANGED
+
+    def get_dirties(self):
+        """ Return attributes marked as dirty """
+        return list(self._dirties)
 
     def __setattr__(self, attribute, value):
         # Set the new value
