@@ -304,12 +304,42 @@ class BonitaUser(BonitaObject, TrackableObject):
         pass
 
     def _update_professional_contact_infos(self, user=None):
-        """ Update professional contact infos of a BonitaUser """
-        # professional contact infos
-        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserProfessionalContactInfo/index.html
+        """ Update professional contact infos of a BonitaUser:
+        building, website, state, city, country, faxNumber, phoneNumber, email, address, zipCode,
+        mobileNumber, room
 
-        # TODO: to develop
-        pass
+        http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/updateUserProfessionalContactInfo/index.html
+
+        """
+        if self._uuid is None:
+            raise BonitaException('must save BonitaUser before updating it')
+        if self.is_unchanged:
+            return
+
+        url = "/identityAPI/updateUserProfessionalContactInfo"
+
+        data = dict()
+
+        data['userUUID'] = self.uuid
+
+        data['building'] = self.professional_infos.get('building','')
+        data['website'] = self.professional_infos.get('website','')
+        data['state'] = self.professional_infos.get('state','')
+        data['city'] = self.professional_infos.get('city','')
+        data['country'] = self.professional_infos.get('country','')
+        data['faxNumber'] = self.professional_infos.get('faxNumber','')
+        data['phoneNumber'] = self.professional_infos.get('phoneNumber','')
+        data['email'] = self.professional_infos.get('email','')
+        data['address'] = self.professional_infos.get('address','')
+        data['zipCode'] = self.professional_infos.get('zipCode','')
+        data['mobileNumber'] = self.professional_infos.get('mobileNumber','')
+        data['room'] = self.professional_infos.get('room','')
+
+        # Call the BonitaServer
+        BonitaServer.get_instance().sendRESTRequest(url=url, user=user, data=data)
+
+        # Mark as cleared of any modification
+        self.clear_state()
 
     def _update_personal_contact_infos(self, user=None):
         """ Update personal contact infos of a BonitaUser:
@@ -348,7 +378,6 @@ class BonitaUser(BonitaObject, TrackableObject):
 
         # Mark as cleared of any modification
         self.clear_state()
-
 
     def _update_password(self, user=None):
         """ Update password of a BonitaUser
