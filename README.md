@@ -8,6 +8,7 @@ Required system packages
 
   * libxslt1
   * python-dev
+  * libz-dev
 
 
 <code>
