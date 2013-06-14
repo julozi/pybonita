@@ -1,15 +1,18 @@
-PyBonita
-========
+# PyBonita
 
 pybonita is a Python wrapper for the Bonita REST API
 
-Python packages installation
-----------------------------
+## Python packages installation
 
     python setup.py install
 
-Examples
---------
+## Documentation
+
+You can build the documentation with `make doc`
+On Github, you can find the documentation from [gh-pages](http://julozi.github.io/pybonita)
+
+### Examples
+
 
 Here are 2 examples using the PyBonita library
 
