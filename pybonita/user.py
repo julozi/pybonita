@@ -31,7 +31,7 @@ class BonitaUser(BonitaObject, TrackableObject):
         #TODO: Add other params
         # membership ou (role,group) mais ils sont exclusifs
         # Prends aussi d'autres parametres qui sont les champs d'un user dans
-        # bontia :
+        # bonita :
         # professional contact : email, phone, mobiel, fax, website, apt./room,
         # building, address, city, zipcode, state, country
         # personal contact : email, phone, mobiel, fax, website, apt./room,
@@ -54,12 +54,34 @@ class BonitaUser(BonitaObject, TrackableObject):
                 setattr(self, arg_key, arg_value)
 
         self._memberships = TrackableList()
+        self._roles = set()
+        self._groups = set()
 
     def _get_memberships(self):
         """ Retrieve the memberships for a BonitaUser """
         return self._memberships
 
     memberships = property(_get_memberships, None, None)
+
+    def _get_roles(self):
+        """ Retrieve list of unique roles for this BonitaUser 
+
+        :return: list(BonitaRole)
+
+        """
+        return list(self._roles)
+
+    roles = property(_get_roles, None, None)
+
+    def _get_groups(self):
+        """ Retrieve list of unique groups for this BonitaUser 
+
+        :return: list(BonitaGroup)
+
+        """
+        return list(self._groups)
+
+    groups = property(_get_groups, None, None)
 
     def _get_uuid(self):
         """ Retrieve the UUID of a Bonita User """
@@ -111,7 +133,13 @@ class BonitaUser(BonitaObject, TrackableObject):
             tag_memberships = xml_find_all(user_soup, 'membership')
             for tag_membership in tag_memberships:
                 membership = BonitaMembership._instanciate_from_xml(unicode(tag_membership))
+                # Add membership and also try to extend sets of roles and groups
+                print 'membership : %s, role.name : %s, group.name: %s' % (membership, membership.role.name, membership.group.name)
                 user._memberships.append(membership)
+                user._roles.add(membership.role)
+                user._groups.add(membership.group)
+                print 'roles : %s' % (user._roles)
+                print 'groups : %s' % (user._groups)
             # Clean the state of user._memberships
             user._memberships.clear_state()
 
@@ -307,8 +335,6 @@ class BonitaUser(BonitaObject, TrackableObject):
         """
         # for membership
         # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/setUserMemberships/%7BuserUUID%7D/index.html
-        # for roles
-        # http://www.bonitasoft.org/docs/javadoc/rest/5.9/API/identityAPI/setUserRoles/%7Busername%7D/index.html
 
         if self._uuid is None:
             raise BonitaException('must save BonitaUser before updating it')
@@ -915,6 +941,7 @@ class BonitaRole(BonitaObject):
 
             # Main properties now
             new_role.uuid = xml_find(role_soup, 'uuid').string
+            print 'creating new role with uuid : %s' % (new_role.uuid)
 
             # Other properties then
             set_if_available(new_role, role_soup, ['dbid'])

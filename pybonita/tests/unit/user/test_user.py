@@ -29,7 +29,12 @@ class TestConstructor(TestCase):
         assert user.password == u'mypassword'
         assert isinstance(user.memberships, list)
         assert len(user.memberships) == 0
+#        assert isinstance(user.roles, list)
+#        assert len(user.roles) == 0
+#        assert isinstance(user.groups, list)
+#        assert len(user.groups) == 0
         assert user.is_modified is True
+
 
     def test_init_base_and_unsupported(self):
         """ Build a user with base data and some unsupported data """
@@ -57,8 +62,6 @@ class TestConstructor(TestCase):
 
 # IMPROVE: check personal_infos at __init__
 # IMPROVE: check professional_infos at __init__
-# TODO: add tests for personal_infos
-# TODO: add tests for professional_infos
 
 
 class TestInstanciateFromXML(TestCase):
@@ -132,8 +135,22 @@ class TestInstanciateFromXML(TestCase):
         user = BonitaUser._instanciate_from_xml(xml)
 
         assert isinstance(user, BonitaUser)
+
         assert isinstance(user.memberships, list)
         assert len(user.memberships) == 2
+
+        assert isinstance(user.roles, list)
+        #assert len(user.roles) == 1
+        assert user.roles[0].name == u'myrole'
+
+        assert isinstance(user.groups, list)
+        #assert len(user.groups) == 2
+        group_names = [group.name for group in user.groups]
+        assert u'mygroup1' in group_names
+        assert u'mygroup2' in group_names
+
+# IMPROVE: check personal_infos
+# IMPROVE: check professional_infos
 
 
 class TestGetUser(TestWithMockedServer):
@@ -192,6 +209,10 @@ class TestGetUser(TestWithMockedServer):
         assert isinstance(user, BonitaUser)
         assert user.username == 'myuser'
 
+# IMPROVE: check personal_infos
+# IMPROVE: check professional_infos
+# IMPROVE: check memberships
+
 
 class TestGetUserByUsername(TestWithMockedServer):
 
@@ -228,6 +249,10 @@ class TestGetUserByUsername(TestWithMockedServer):
 
         assert isinstance(user, BonitaUser)
         assert user.username == 'known'
+
+# IMPROVE: check personal_infos
+# IMPROVE: check professional_infos
+# IMPROVE: check memberships
 
 
 class TestGetUserByUUID(TestWithMockedServer):
@@ -266,6 +291,9 @@ class TestGetUserByUUID(TestWithMockedServer):
         assert isinstance(user, BonitaUser)
         assert user.uuid == '996633'
 
+# IMPROVE: check personal_infos
+# IMPROVE: check professional_infos
+# IMPROVE: check memberships
 
 class TestFindAll(TestWithMockedServer):
 
@@ -718,7 +746,7 @@ class TestUpdatePersonalContactInfos(TestWithMockedServer):
 
 
 class TestUpdateProfessionalContactInfos(TestWithMockedServer):
-    # IMPROVE: add tests with only parts of personal contact infos modified
+    # IMPROVE: add tests with only parts of professional contact infos modified
 
     @classmethod
     def setUpClass(cls):
@@ -788,6 +816,121 @@ class TestUpdateProfessionalContactInfos(TestWithMockedServer):
         assert user.professional_infos['room'] == u'room'
 
         assert user.professional_infos.is_modified is False
+
+
+# TODO: test for updating memberships
+#class TestUpdateMemberships(TestWithMockedServer):
+
+#    @classmethod
+#    def setUpClass(cls):
+#        pass
+
+#    @classmethod
+#    def tearDownClass(cls):
+#        pass
+
+#    def test_not_modified(self):
+#        """ Update memberships for unmodified BonitaUser """
+#        user = BonitaUser(username=u'myusername', password=u'mypassword')
+#        user._uuid = 'myuuid'
+
+#        # Mark user as unmodified
+#        user.clear_state()
+
+#        user._update_roles()
+
+#        assert user.is_modified is False
+
+#    @raises(BonitaException)
+#    def test_update_not_saved(self):
+#        """ Update memberships for BonitaUser which is not already saved """
+#        user = BonitaUser(username=u'myusername', password=u'mypassword')
+
+#        user._update_roles()
+
+#    def test_unknown_memberships_uuid(self):
+#        """ Update memberships of a BonitaUser but unknown memberships """
+#        user = BonitaUser(username=u'myusername', password=u'mypassword')
+#        user._uuid = 'myuuid'
+
+#        # Prepare response of MockedServer
+#        url = '/identityAPI/setUserRoles'
+#        code = 200
+#        user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='other_usernames')
+#        BonitaServer.set_response_list([[url, code, user_xml]])
+
+#        # Modify some professional contact data
+#        user.professional_infos['building'] = u'building'
+#        user.professional_infos['website'] = u'website'
+#        user.professional_infos['state'] = u'state'
+#        user.professional_infos['city'] = u'city'
+#        user.professional_infos['country'] = u'country'
+#        user.professional_infos['faxNumber'] = u'faxNumber'
+#        user.professional_infos['phoneNumber'] = u'phoneNumber'
+#        user.professional_infos['email'] = u'email'
+#        user.professional_infos['address'] = u'address'
+#        user.professional_infos['zipCode'] = u'zipCode'
+#        user.professional_infos['mobileNumber'] = u'mobileNumber'
+#        user.professional_infos['room'] = u'room'
+
+#        user._update_professional_contact_infos()
+
+#        assert user.professional_infos['building'] == u'building'
+#        assert user.professional_infos['website'] == u'website'
+#        assert user.professional_infos['state'] == u'state'
+#        assert user.professional_infos['city'] == u'city'
+#        assert user.professional_infos['country'] == u'country'
+#        assert user.professional_infos['faxNumber'] == u'faxNumber'
+#        assert user.professional_infos['phoneNumber'] == u'phoneNumber'
+#        assert user.professional_infos['email'] == u'email'
+#        assert user.professional_infos['address'] == u'address'
+#        assert user.professional_infos['zipCode'] == u'zipCode'
+#        assert user.professional_infos['mobileNumber'] == u'mobileNumber'
+#        assert user.professional_infos['room'] == u'room'
+
+#        assert user.professional_infos.is_modified is False
+
+#    def test_modified(self):
+#        """ Update memberships of a BonitaUser """
+#        user = BonitaUser(username=u'myusername', password=u'mypassword')
+#        user._uuid = 'myuuid'
+
+#        # Prepare response of MockedServer
+#        url = '/identityAPI/updateUserProfessionalContactInfo'
+#        code = 200
+#        user_xml = build_bonita_user_xml(uuid='myuuid', password='mypassword', username='other_usernames')
+#        BonitaServer.set_response_list([[url, code, user_xml]])
+
+#        # Modify some professional contact data
+#        user.professional_infos['building'] = u'building'
+#        user.professional_infos['website'] = u'website'
+#        user.professional_infos['state'] = u'state'
+#        user.professional_infos['city'] = u'city'
+#        user.professional_infos['country'] = u'country'
+#        user.professional_infos['faxNumber'] = u'faxNumber'
+#        user.professional_infos['phoneNumber'] = u'phoneNumber'
+#        user.professional_infos['email'] = u'email'
+#        user.professional_infos['address'] = u'address'
+#        user.professional_infos['zipCode'] = u'zipCode'
+#        user.professional_infos['mobileNumber'] = u'mobileNumber'
+#        user.professional_infos['room'] = u'room'
+
+#        user._update_professional_contact_infos()
+
+#        assert user.professional_infos['building'] == u'building'
+#        assert user.professional_infos['website'] == u'website'
+#        assert user.professional_infos['state'] == u'state'
+#        assert user.professional_infos['city'] == u'city'
+#        assert user.professional_infos['country'] == u'country'
+#        assert user.professional_infos['faxNumber'] == u'faxNumber'
+#        assert user.professional_infos['phoneNumber'] == u'phoneNumber'
+#        assert user.professional_infos['email'] == u'email'
+#        assert user.professional_infos['address'] == u'address'
+#        assert user.professional_infos['zipCode'] == u'zipCode'
+#        assert user.professional_infos['mobileNumber'] == u'mobileNumber'
+#        assert user.professional_infos['room'] == u'room'
+
+#        assert user.professional_infos.is_modified is False
 
 
 class TestUpdate(TestWithMockedServer):
