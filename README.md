@@ -6,15 +6,14 @@ pybonita is a Python wrapper for the Bonita REST API
 Python packages installation
 ----------------------------
 
-^python setup.py install
+    python setup.py install
 
 Examples
 --------
 
 Here are 2 examples using the PyBonita library
 
-Creating a new case
-...................
+### Creating a new case
 
     # -*- coding: utf-8 -*-
     from pybonita import BonitaServer
@@ -46,8 +45,7 @@ Creating a new case
         main()
 
 
-Creating a new user in a group, for a given role
-................................................
+### Creating a new user in a group, for a given role
 
     #-*- coding: utf-8 -*-
     from pybonita import BonitaServer
